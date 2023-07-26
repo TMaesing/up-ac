@@ -3,25 +3,29 @@ from unified_planning.io import PDDLReader
 import multiprocessing as mp
 import time
 import sys
+import os
 
-sys.path.insert(0, '..')
+path = os.getcwd().rsplit('up-ac', 2)[0]
+path += 'up-ac'
+
+if not os.path.isfile(sys.path[0] + '/configurators.py') and 'up-ac' in sys.path[0]:
+    sys.path.insert(0, sys.path[0].rsplit('up-ac', 2)[0] + 'up-ac')
 
 from configurators import Configurator
 from AC_interface import GenericACInterface
 
-instances = ['../test_problems/depot/problem.pddl',
-             '../test_problems/counters/problem.pddl']
+instances = [f'{path}/test_problems/depot/problem.pddl',
+             f'{path}/test_problems/counters/problem.pddl']
 
 instance_features = \
-    {'../test_problems/depot/problem.pddl': [1,32,2,4],
-     '../test_problems/counters/problem.pddl': [1,32,2,4]}
+    {f'{path}/test_problems/depot/problem.pddl': [1,32,2,4],
+     f'{path}/test_problems/counters/problem.pddl': [1,32,2,4]}
 
 engine = ['enhsp']
-
 metrics = ['quality', 'runtime']
 
 gaci = GenericACInterface()
-gaci.read_engine_pcs(engine, '../engine_pcs')
+gaci.read_engine_pcs(engine, f'{path}/engine_pcs')
 
 if __name__ == '__main__':
     mp.freeze_support()

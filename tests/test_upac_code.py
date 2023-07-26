@@ -1,8 +1,13 @@
 """Test up AC implementation."""
 from unified_planning.io import PDDLReader
 import sys
+import os
 
-sys.path.insert(0, '..')
+path = os.getcwd().rsplit('up-ac', 2)[0]
+path += 'up-ac'
+
+if not os.path.isfile(sys.path[0] + '/configurators.py') and 'up-ac' in sys.path[0]:
+    sys.path.insert(0, sys.path[0].rsplit('up-ac', 2)[0] + 'up-ac')
 
 from AC_interface import GenericACInterface
 from configurators import Configurator
@@ -13,14 +18,14 @@ print('Available engines:\n', gaci.available_engines, '\n')
 
 engines = ['lpg', 'fast-downward', 'enhsp']
 
-gaci.read_engine_pcs(engines, '../engine_pcs')
+gaci.read_engine_pcs(engines, f'{path}/engine_pcs')
 
 default_param = \
     gaci.engine_param_spaces[engines[0]].get_default_configuration()
 
 reader = PDDLReader()
-pddl_problem = reader.parse_problem('../test_problems/depot/domain.pddl',
-                                    '../test_problems/depot/problem.pddl')
+pddl_problem = reader.parse_problem(f'{path}/test_problems/depot/domain.pddl',
+                                    f'{path}/test_problems/depot/problem.pddl')
 
 metrics = ['quality', 'runtime']
 

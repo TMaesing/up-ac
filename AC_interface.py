@@ -34,6 +34,8 @@ class GenericACInterface():
         if pcs_dir[-1] != '/':
             pcs_dir = pcs_dir + '/'
 
+        print('\n\npcs_dir',pcs_dir, '\n\n')
+
         for engine in engines:
             with open(pcs_dir + engine + '.pcs', 'r') as f:
                 self.engine_param_spaces[engine] = pcs.read(f)
