@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# json files
+*.json
+
+# pyenv
+.python-version
+
+# SMAC files
+smac3_output/

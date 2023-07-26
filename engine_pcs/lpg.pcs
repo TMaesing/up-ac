@@ -1,0 +1,8 @@
+avoid_best_action_cycles {0, 1, 2} [0]
+bestfirst {0, 1, 2} [1]
+choose_min_numA_fact {0, 1} [1] # FLAG
+cri_insertion_add_mutex {0, 1} [0] # FLAG
+cri_intermediate_levels {0, 1, 2} [1]
+cri_update_iterations [0, 100] [0]i
+criprecond {4, 5, 6} [6]
+
