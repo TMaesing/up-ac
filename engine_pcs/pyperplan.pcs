@@ -1,0 +1,5 @@
+search {astar, wastar, gbf, bfs, ehs, ids, sat} [astar]
+heuristic {blind, hadd, hmax, hsa, hff, lmcut, landmark} [hff]
+
+# Conditional: <is active> if | <parameter> has value in {x,...,y}
+heuristic | search in {bfs, ids, sat}

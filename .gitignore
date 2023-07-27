@@ -9,3 +9,6 @@ __pycache__/
 
 # SMAC files
 smac3_output/
+
+# draft scripts
+draft.py

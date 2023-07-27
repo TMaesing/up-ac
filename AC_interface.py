@@ -5,8 +5,13 @@ from unified_planning.shortcuts import *
 from utils.pcs_transform import transform_pcs
 from utils.ac_feedback import qaul_feedback, runtime_feedback
 import copy
+from tarski.io import PDDLReader as treader
 
 from ConfigSpace.read_and_write import pcs
+
+from patches import patch_pcs
+
+pcs = patch_pcs(pcs)
 
 
 class GenericACInterface():
@@ -18,12 +23,41 @@ class GenericACInterface():
         self.available_engines = self.get_available_engines()
         self.engine_param_spaces = {}
         self.engine_param_types = {}
+        self.treader = treader(raise_on_error=False)
 
     def get_available_engines(self):
         """Get planning engines installed in up."""
         factory = unified_planning.engines.factory.Factory(self.environment)
 
         return factory.engines
+
+    def compute_instance_features(self, domain, instance):
+        """Compute some instance features of a iven pddl instance.
+
+        parameter domain: pddl, problem domain.
+        parameter instance: pddl, problem instance.
+
+        return features: list, computed instance features
+        """
+        try:
+            features = []
+            self.treader.parse_domain(domain)
+            problem = self.treader.parse_instance(instance)
+            lang = problem.language
+            features.append(len(lang.predicates))
+            features.append(len(lang.functions))
+            features.append(len(lang.constants()))
+            features.append(len(list(problem.actions)))
+            features.append(features[1] / features[0])
+            features.append(features[1] / features[2])
+            features.append(features[1] / features[3])
+            features.append(features[0] / features[2])
+            features.append(features[0] / features[3])
+            features.append(features[2] / features[3])
+        except:
+            features = [0 for _ in range(10)]
+
+        return features
 
     def read_engine_pcs(self, engines, pcs_dir):
         """Read in pcs file for engine.
