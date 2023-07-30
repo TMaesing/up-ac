@@ -4,12 +4,20 @@ from unified_planning.environment import get_environment
 from unified_planning.shortcuts import *
 from utils.pcs_transform import transform_pcs
 from utils.ac_feedback import qaul_feedback, runtime_feedback
+from utils.patches import patch_pcs
 import copy
 from tarski.io import PDDLReader as treader
+import pandas as pd
+import rpy2.robjects as ro
+from rpy2.robjects.packages import importr
+from rpy2.robjects import pandas2ri
 
 from ConfigSpace.read_and_write import pcs
-
-from patches import patch_pcs
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+)
 
 pcs = patch_pcs(pcs)
 
@@ -23,7 +31,7 @@ class GenericACInterface():
         self.available_engines = self.get_available_engines()
         self.engine_param_spaces = {}
         self.engine_param_types = {}
-        self.treader = treader(raise_on_error=False)
+        self.treader = treader(raise_on_error=True)
 
     def get_available_engines(self):
         """Get planning engines installed in up."""
@@ -40,6 +48,7 @@ class GenericACInterface():
         return features: list, computed instance features
         """
         try:
+            # TODO catch duplicte errors in tarski
             features = []
             self.treader.parse_domain(domain)
             problem = self.treader.parse_instance(instance)
@@ -68,8 +77,6 @@ class GenericACInterface():
         if pcs_dir[-1] != '/':
             pcs_dir = pcs_dir + '/'
 
-        print('\n\npcs_dir',pcs_dir, '\n\n')
-
         for engine in engines:
             with open(pcs_dir + engine + '.pcs', 'r') as f:
                 self.engine_param_spaces[engine] = pcs.read(f)
@@ -88,22 +95,22 @@ class GenericACInterface():
 
         parameter ac_tool: str, name of AC tool in use.
         parameter engines: list of str, names of engines.
-        parameter configuration: list of str, names of engines.
+        parameter configuration: dict, parameter names with values.
 
         return config: dict, configuration.
         """
-        if ac_tool == 'SMAC':
+        if ac_tool == 'SMAC' or ac_tool == 'irace':
             config = transform_pcs(engine, configuration)
             if engine == 'lpg':
                 del_list = []
                 add_list = []
                 for pname, pvalue in config.items():
-                    if pname in self.engine_param_types:
-                        if self.engine_param_types[pname] == 'FLAGS':
+                    if pname in self.engine_param_types['lpg']:
+                        if self.engine_param_types['lpg'][pname] == 'FLAGS':
                             del_list.append(pname)
                             flag_pname = pname + '=' + config[pname]
                             add_list.append(flag_pname)
-                        elif self.engine_param_types[pname] == 'FLAG':
+                        elif self.engine_param_types['lpg'][pname] == 'FLAG':
                             if config[pname] == '1':
                                 config[pname] = ''
                             else:
@@ -163,7 +170,64 @@ class GenericACInterface():
 
                 config = {'fast_downward_search_config': search_option}
 
+            else:
+                config = configuration
+
         return config
+
+    def get_df_irace(self, param_space, engine):
+
+        conditionals = param_space.get_all_conditional_hyperparameters()
+        params = param_space.get_hyperparameters_dict()
+
+        names = []
+        values = []
+            
+        for _, param in params.items():
+            names.append(param.name)
+            values.append(param.default_value)
+
+        default_conf = pd.DataFrame([values], columns=names)
+
+        with (ro.default_converter + pandas2ri.converter).context():
+            default_conf = ro.conversion.get_conversion().py2rpy(default_conf)
+
+        irace_param_space = ''
+
+        for p, param in params.items():
+            condition = ''
+            if isinstance(param, CategoricalHyperparameter):
+                choices = ''
+                for pc in param.choices:
+                    choices += f'\"{pc}\", '
+                irace_param_space += '\n' + param.name + ' \"\" c ' + f'({choices[:-2]})' + condition
+            elif isinstance(param, UniformFloatHyperparameter):
+                irace_param_space += '\n' + param.name + ' \"\" r ' + f'({param.lower}, {param.upper})' + condition
+            elif isinstance(param, UniformIntegerHyperparameter):
+                irace_param_space += '\n' + param.name + ' \"\" i ' + f'({param.lower}, {param.upper})' + condition
+
+        forbidden = ''
+        for f in param_space.forbidden_clauses:
+            fpair = f.get_descendant_literal_clauses()
+            if isinstance(fpair[0].hyperparameter, CategoricalHyperparameter) and\
+                    isinstance(fpair[1].hyperparameter, CategoricalHyperparameter):
+                forbidden += '\n(' + fpair[0].hyperparameter.name + ' == ' + f'\"{fpair[0].value}\") ' +\
+                    '& (' + fpair[1].hyperparameter.name + ' == ' + f'\"{fpair[1].value}\")'
+            elif isinstance(fpair[0].hyperparameter, CategoricalHyperparameter):
+                forbidden += '\n(' + fpair[0].hyperparameter.name + ' == ' + f'\"{fpair[0].value}\") ' +\
+                    '& (' + fpair[1].hyperparameter.name + ' == ' + f'{fpair[1].value})'
+            elif isinstance(fpair[1].hyperparameter, CategoricalHyperparameter):
+                forbidden += '\n(' + fpair[0].hyperparameter.name + ' == ' + f'{fpair[0].value}) ' +\
+                    '& (' + fpair[1].hyperparameter.name + ' == ' + f'\"{fpair[1].value}\")'
+
+        forbidden += '\n'
+
+        with open("forbidden.txt", "w") as text_file:
+            text_file.write(forbidden)
+
+        self.irace_param_space = irace_param_space
+
+        return default_conf
 
     def transform_param_space(self, ac_tool, pcs):
         """Transform configuration to AC tool format.

@@ -5,27 +5,38 @@ import time
 import sys
 import os
 
+# make sure test can be run from anywhere
 path = os.getcwd().rsplit('up-ac', 2)[0]
 path += 'up-ac'
-
 if not os.path.isfile(sys.path[0] + '/configurators.py') and 'up-ac' in sys.path[0]:
     sys.path.insert(0, sys.path[0].rsplit('up-ac', 2)[0] + 'up-ac')
 
 from configurators import Configurator
 from AC_interface import GenericACInterface
 
+# pddl instance to test with
 instances = [f'{path}/test_problems/depot/problem.pddl',
-             f'{path}/test_problems/counters/problem.pddl']
+             f'{path}/test_problems/counters/problem.pddl',
+             f'{path}/test_problems/citycar/problem.pddl',
+             f'{path}/test_problems/miconic/problem.pddl',
+             f'{path}/test_problems/robot_fastener/problem.pddl']
 
-instance_features = \
-    {f'{path}/test_problems/depot/problem.pddl': [1,32,2,4],
-     f'{path}/test_problems/counters/problem.pddl': [1,32,2,4]}
-
+# test setting
 engine = ['enhsp']
+
 metrics = ['quality', 'runtime']
 
+# initialize generic Algorithm Configuration interface
 gaci = GenericACInterface()
 gaci.read_engine_pcs(engine, f'{path}/engine_pcs')
+
+# compute pddl instance features
+instance_features = {}
+for instance in instances:
+    instance_features[instance] \
+            = gaci.compute_instance_features(
+                instance.rsplit('/', 1)[0] + '/domain.pddl',
+                instance)
 
 if __name__ == '__main__':
     mp.freeze_support()
@@ -33,17 +44,38 @@ if __name__ == '__main__':
     for metric in metrics:
 
         AC = Configurator()
+        AC.set_training_instance_set(instances)
+        AC.set_test_instance_set(instances)
+        AC_fb_func = AC.get_feedback_function('irace', gaci, engine[0], metric, 'OneshotPlanner')
+        AC.set_scenario('irace', engine[0], gaci.engine_param_spaces[engine[0]], gaci,
+                            configuration_time=30, n_trials=30,
+                            crash_cost=0,
+                            planner_timelimit=15, n_workers=3,
+                            instance_features=None)
+        # run algorithm configuration
+        incumbent, _ = AC.optimize('irace', feedback_function=AC_fb_func)
+        # check configurations performance
+        perf = AC.evaluate('irace', metric, engine[0], 'OneshotPlanner', AC.incumbent, gaci)
+        # save best configuration found
+        AC.save_config('.', AC.incumbent, gaci, 'irace', engine[0])
 
+    for metric in metrics:
+
+        # initialize algorithm configurator
+        AC = Configurator()
         AC.get_instance_features(instance_features)
         AC.set_training_instance_set(instances)
         AC.set_test_instance_set(instances)
         AC_fb_func = AC.get_feedback_function('SMAC', gaci, engine[0], metric, 'OneshotPlanner')
-        AC.set_scenario('SMAC', gaci.engine_param_spaces[engine[0]],
-                        configuration_time=120, n_trials=10,
-                        min_budget=1, max_budget=2, crash_cost=0,
-                        planner_timelimit=5, n_workers=3,
+        AC.set_scenario('SMAC', engine[0], gaci.engine_param_spaces[engine[0]],
+                        gaci, configuration_time=30, n_trials=10,
+                        min_budget=2, max_budget=5, crash_cost=0,
+                        planner_timelimit=15, n_workers=3,
                         instance_features=AC.instance_features)
 
-        incumbent, ac = AC.optimize('SMAC', feedback_function=AC_fb_func)
-        AC.evaluate(AC_fb_func, AC.incumbent)
+        # run algorithm configuration
+        incumbent, _ = AC.optimize('SMAC', feedback_function=AC_fb_func)
+        # check configurations performance
+        perf = AC.evaluate('SMAC', metric, engine[0], 'OneshotPlanner', AC.incumbent, gaci)
+        # save best configuration found
         AC.save_config('.', AC.incumbent, gaci, 'SMAC', engine[0])

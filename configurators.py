@@ -1,18 +1,22 @@
 """Functionalities for managing and calling configurators."""
 from smac import Scenario
 from smac import AlgorithmConfigurationFacade
+from irace import irace
 
 from unified_planning.io import PDDLReader
 
 from AC_interface import *
 
 import json
+import timeit
 
 class Configurator():
     """Configurator functions."""
 
     def __init__(self):
         """Initialize generic interface."""
+        self.capabilities = {'quality': {'OneshotPlanner': ['lpg', 'fast-downward', 'enhsp']},
+                             'runtime': {'OneshotPlanner': ['lpg', 'fast-downward', 'enhsp', 'tamer', 'pyperplan']}}
         self.incumbent = None
         self.instance_features = {}
         self.train_set = {}
@@ -35,40 +39,83 @@ class Configurator():
         print('\nSetting testing instance set.\n')
 
     def get_feedback_function(self, ac_tool, gaci, engine, metric, mode):
-        self.metric = metric
-        if ac_tool == 'SMAC':
-            def planner_feedback(config, instance, seed=0):
-                instance_p = f'{instance}'
-                domain_path = instance_p.rsplit('/', 1)[0]
-                out_file = instance_p.rsplit('/', 1)[1]
-                domain = f'{domain_path}/domain.pddl'
-                pddl_problem = self.reader.parse_problem(f'{domain}',
-                                                    f'{instance_p}')
-                # print(pddl_problem)
-                feedback = \
-                    gaci.run_engine_config(ac_tool,
-                                           config,
-                                           metric,
-                                           engine,
-                                           mode,
-                                           pddl_problem)
-                if feedback is not None:
-                    # SMAC always minimizes
-                    if metric == 'quality':
-                        return -feedback
-                    elif metric == 'runtime':
+        if engine in self.capabilities[metric][mode]:
+            self.metric = metric
+            if ac_tool == 'SMAC':
+                def planner_feedback(config, instance, seed=0):
+                    if metric == 'runtime':
+                        start = timeit.default_timer()
+                    instance_p = f'{instance}'
+                    domain_path = instance_p.rsplit('/', 1)[0]
+                    out_file = instance_p.rsplit('/', 1)[1]
+                    domain = f'{domain_path}/domain.pddl'
+                    pddl_problem = self.reader.parse_problem(f'{domain}',
+                                                        f'{instance_p}')
+                    feedback = \
+                        gaci.run_engine_config(ac_tool,
+                                               config,
+                                               metric,
+                                               engine,
+                                               mode,
+                                               pddl_problem)
+
+                    if feedback is not None:
+                        # SMAC always minimizes
+                        if metric == 'quality':
+                            return -feedback
+                        elif metric == 'runtime':
+                            return feedback
+                    else:
+                        if metric == 'runtime':
+                            feedback = timeit.default_timer() - start
+                        else:
+                            feedback = self.crash_cost
                         return feedback
-                else:
-                    return None
 
-            print('\nSMAC feedback function is generated.\n')
+            if ac_tool == 'irace':
+                def planner_feedback(experiment, scenario):
+                    start = timeit.default_timer()
+                    instance_p = scenario['instances'][experiment['id.instance'] - 1]
+                    domain_path = instance_p.rsplit('/', 1)[0]
+                    out_file = instance_p.rsplit('/', 1)[1]
+                    domain = f'{domain_path}/domain.pddl'
+                    pddl_problem = self.reader.parse_problem(f'{domain}',
+                                                        f'{instance_p}')
+                    config = dict(experiment['configuration'])
 
-        return planner_feedback
+                    feedback = \
+                        gaci.run_engine_config(ac_tool,
+                                               config,
+                                               metric,
+                                               engine,
+                                               mode,
+                                               pddl_problem)
 
-    def set_scenario(self, ac_tool, param_space, configuration_time=120,
+                    runtime = timeit.default_timer() - start
+                    if feedback is not None:
+                        # SMAC always minimizes
+                        if metric == 'quality':
+                            feedback = {'cost': -feedback, 'time': runtime}
+                            return feedback
+                        elif metric == 'runtime':
+                            feedback = {'cost': runtime, 'time': runtime}
+                            return feedback
+                    else:
+                        if metric == 'runtime':
+                            feedback = {'cost': runtime, 'time': runtime}
+                        else:
+                            feedback = feedback = {'cost': self.crash_cost, 'time': self.crash_cost}
+                        return feedback
+
+            return planner_feedback
+        else:
+            print(f'Algorithm Configuration for {metric} of {ac_tool} in {mode} is not supported.')
+            return None
+
+    def set_scenario(self, ac_tool, engine, param_space, gaci, configuration_time=120,
                      n_trials=400, min_budget=1, max_budget=3, crash_cost=0,
                      planner_timelimit=30, n_workers=1, instances=[],
-                     instance_features=None):
+                     instance_features=None, metric='runtime'):
         if not instances:
             instances = self.train_set
         self.crash_cost = crash_cost
@@ -76,7 +123,7 @@ class Configurator():
             scenario = Scenario(
                 param_space,
                 walltime_limit=configuration_time,  # We want to optimize for <configuration_time> seconds
-                n_trials=n_trials,  # We want to try max <n_trials> different trials
+                n_trials=n_trials,  # Maximum number or algorithm runs
                 min_budget=min_budget,  # Use min <min_budget> instance
                 max_budget=max_budget,  # Use max <max_budget> instances
                 deterministic=True, # Not stochastic algorithm
@@ -89,43 +136,105 @@ class Configurator():
             )
             print('\nSMAC scenario is set.\n')
 
+        if ac_tool == 'irace':
+            default_conf = gaci.get_df_irace(param_space, engine)
+
+            if metric == 'quality':
+                test_type = 'friedman'
+                capping = False
+            elif metric == 'runtime':
+                test_type = 't-test'
+                capping = True
+            # See https://mlopez-ibanez.github.io/irace/reference/defaultScenario.html
+            scenario = dict(
+                maxTime = configuration_time, # We want to optimize for <configuration_time> seconds
+                instances = instances, # List of training instances
+                debugLevel = 3, 
+                digits = 10, # number of decimal places to be considered for the real parameters
+                parallel=n_workers, # Number of parallel runs
+                forbiddenFile = "forbidden.txt",
+                logFile = "",
+                initConfigurations=default_conf,
+                nbConfigurations=8,
+                deterministic = True,
+                testType=test_type,
+                capping=capping,
+                boundMax=planner_timelimit)
+
+            self.irace_param_space = gaci.irace_param_space
+
+            print('\nIrace scenario is set.\n')
+
         self.scenario = scenario
 
     def optimize(self, ac_tool, feedback_function=None, gray_box=False):
-        if ac_tool == 'SMAC':
-            print('\nStarting Parameter optimization\n')
-            ac = AlgorithmConfigurationFacade(
+        if feedback_function is not None:
+            if ac_tool == 'SMAC':
+                print('\nStarting Parameter optimization\n')
+                ac = AlgorithmConfigurationFacade(
                     self.scenario,
                     feedback_function,
                     overwrite=True,
-                )
+                    )
 
-            self.incumbent = ac.optimize()
+                self.incumbent = ac.optimize()
 
-        print('\nBest Configuration found is:\n', self.incumbent)
+                self.incumbent = self.incumbent.get_dictionary()
 
-        return self.incumbent, ac
+            if ac_tool == 'irace':
+                print('\nStarting Parameter optimization\n')
+                ac = irace(self.scenario,
+                    self.irace_param_space,
+                    feedback_function
+                    )
+                self.incumbent = ac.run()
 
-    def evaluate(self, feedback_function, incumbent, instances=[]):
-        if not instances:
-            instances = self.test_set
-        nr_inst = len(instances)
-        avg_f = 0
-        for inst in instances:
-            f = feedback_function(incumbent, inst, seed=0)
-            if f is not None and self.metric == 'quality':
-                f = -f
-            print(f'\nFeedback on instance {inst}:\n\n', f, '\n')
-            if f is not None: 
-                avg_f += f
+                self.incumbent = self.incumbent.to_dict(orient='records')[0]
+
+            print('\nBest Configuration found is:\n', self.incumbent)
+
+            return self.incumbent, ac
+        else:
+            return None, None
+
+    def evaluate(self, ac_tool, metric, engine, mode, incumbent, gaci, instances=[]):
+        if incumbent is not None:
+            if not instances:
+                instances = self.test_set
+            nr_inst = len(instances)
+            avg_f = 0
+            for inst in instances:
+                if metric == 'runtime':
+                    start = timeit.default_timer()
+
+                f = \
+                    gaci.run_engine_config(ac_tool, incumbent,
+                                           metric, engine,
+                                           mode, inst)
+                if metric == 'runtime' and f is None:
+                    f = start = timeit.default_timer() - start
+                if f is not None and self.metric == 'quality':
+                    f = -f
+                print(f'\nFeedback on instance {inst}:\n\n', f, '\n')
+                if f is not None: 
+                    avg_f += f
+                else:
+                    avg_f += self.crash_cost
+            if nr_inst != 0:
+                avg_f = avg_f / nr_inst
+                print(f'\nAverage performance on {nr_inst} instances:', avg_f, '\n')
+                return avg_f
             else:
-                avg_f += self.crash_cost
-                nr_inst -= 1
-        avg_f = avg_f / nr_inst
-        print('\nAverage performance:', avg_f, '\n')
+                print('\nPerformance could not be evaluated. No plans found.')
+                return None
+        else:
+            return None
 
     def save_config(self, path, config, gaci, ac_tool, engine):
-        config = gaci.transform_conf_from_ac(ac_tool, engine, config)
-        with open(f'{path}/incumbent_{engine}.json', 'w') as f:
-            json.dump(config, f)
-        print(f'\nSaved best configuration in {path}/incumbent_{engine}.json\n')
+        if config is not None:
+            config = gaci.transform_conf_from_ac(ac_tool, engine, config)
+            with open(f'{path}/incumbent_{engine}.json', 'w') as f:
+                json.dump(config, f)
+            print(f'\nSaved best configuration in {path}/incumbent_{engine}.json\n')
+        else:
+            print(f'No configuration was saved. It was {config}')

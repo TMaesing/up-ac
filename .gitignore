@@ -12,3 +12,14 @@ smac3_output/
 
 # draft scripts
 draft.py
+
+# R
+.Rhistory
+
+# output
+tests/forbidden.txt
+tests/incumbent_enhsp.json
+tests/incumbent_lpg.json
+tests/incumbent_fast-downward.json
+tests/incumbent_tamer.json
+tests/incumbent_pyperplan.json

@@ -12,30 +12,24 @@ def qaul_feedback(engine, result):
         output = result.log_messages[0].message
         output = output.split('\n')
         for line in output:
-            if line[:12] == 'Plan quality':
+            if 'Plan quality' in line:
                 line = line.split(' ')
-                feedback = float(line[5])
+                for fb in line:
+                    if '.' in fb:
+                        feedback = float(fb)
 
     elif engine == 'fast-downward':
         output = result.log_messages[0].message
         output = output.split('\n')
         for line in output:
-            if line[26:35] == 'Plan cost':
+            if 'Plan cost' in line:
                 line = line.split(' ')
                 feedback = float(line[5])
-
-    elif engine == 'pyperplan':
-        # TODO
-        feedback = 1.0
-
-    elif engine == 'tamer':
-        # TODO
-        feedback = 1.0
 
     elif engine == 'enhsp':
         output = result.log_messages[0].message.split('\n')
         for line in output:
-            if line[:6] == 'Metric':
+            if 'Metric' in line:
                 line = line.split(':')
                 feedback = float(line[1])
 
@@ -57,7 +51,7 @@ def runtime_feedback(engine, result):
         output = result.log_messages[0].message
         output = output.split('\n')
         for line in output:
-            if line[:8] == 'Duration':
+            if 'Duration:' in line:
                 line = line.split(' ')
                 feedback = float(line[-1])
 
@@ -65,22 +59,19 @@ def runtime_feedback(engine, result):
         output = result.log_messages[0].message
         output = output.split('\n')
         for line in output:
-            if line[26:36] == 'Total time':
-                line = line.split(' ')
-                feedback = float(line[5][:-1])
+            if 'Planner time:' in line:
+                feedback = float(line.split(' ')[-1][:-1])
 
     elif engine == 'pyperplan':
-        # TODO -> get output from pyperplan
-        feedback = 1.0
+        feedback = None
 
     elif engine == 'tamer':
-        # TODO -> get output from pyperplan
-        feedback = 1.0
+        feedback = None
 
     elif engine == 'enhsp':
         output = result.log_messages[0].message.split('\n')
         for line in output:
-            if line[:13] == 'Planning Time':
+            if 'Planning Time' in line:
                 line = line.split(':')
                 feedback = (float(line[1])) / 100
 

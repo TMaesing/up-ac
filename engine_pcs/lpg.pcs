@@ -67,8 +67,8 @@ incremental_goal_resolution {0, 1} [0] # FLAG
 insert_time_limit_actions_after_last_applicable {0, 1} [0] # FLAG
 info_search [0, 6] [0]i
 lowmemory {0, 1} [0] # FLAG
-l_rate+ [0.00001, 0.01] [0.001]
-l_rate- [0.00000001, 0.00001] [0.0000005]
+# l_rate+ [0.00001, 0.01] [0.001]
+# l_rate- [0.00000001, 0.00001] [0.0000005]
 neighb_without_timed_fa {0, 1} [0] # FLAG 
 ncut_neighb {0, 1} [0] # FLAG
 nobestfirst {0, 1} [0] # FLAG

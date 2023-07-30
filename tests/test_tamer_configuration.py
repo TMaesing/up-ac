@@ -22,8 +22,8 @@ instances = [f'{path}/test_problems/depot/problem.pddl',
              f'{path}/test_problems/robot_fastener/problem.pddl']
 
 # test setting
-engine = ['lpg']
-metrics = ['quality', 'runtime']
+engine = ['tamer']
+metrics = ['runtime']
 
 # initialize generic Algorithm Configuration interface
 gaci = GenericACInterface()

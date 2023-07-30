@@ -22,8 +22,8 @@ instances = [f'{path}/test_problems/depot/problem.pddl',
              f'{path}/test_problems/robot_fastener/problem.pddl']
 
 # test setting
-engine = ['lpg']
-metrics = ['quality', 'runtime']
+engine = ['pyperplan']
+metrics = ['runtime']
 
 # initialize generic Algorithm Configuration interface
 gaci = GenericACInterface()
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         AC.set_scenario('irace', engine[0], gaci.engine_param_spaces[engine[0]], gaci,
                             configuration_time=30, n_trials=30,
                             crash_cost=0,
-                            planner_timelimit=15, n_workers=3,
+                            planner_timelimit=5, n_workers=3,
                             instance_features=None)
         # run algorithm configuration
         incumbent, _ = AC.optimize('irace', feedback_function=AC_fb_func)
