@@ -9,14 +9,17 @@ from AC_interface import *
 
 import json
 import timeit
+import os
+import urllib.request
+import zipfile
 
 class Configurator():
     """Configurator functions."""
 
     def __init__(self):
         """Initialize generic interface."""
-        self.capabilities = {'quality': {'OneshotPlanner': ['lpg', 'fast-downward', 'enhsp']},
-                             'runtime': {'OneshotPlanner': ['lpg', 'fast-downward', 'enhsp', 'tamer', 'pyperplan']}}
+        self.capabilities = {'quality': {'OneshotPlanner': ['lpg', 'fast-downward', 'enhsp', 'symk'], 'AnytimePlanner': ['fast-downward', 'symk']},
+                             'runtime': {'OneshotPlanner': ['lpg', 'fast-downward', 'enhsp', 'symk', 'tamer', 'pyperplan'], 'AnytimePlanner': ['fast-downward', 'symk']}}
         self.incumbent = None
         self.instance_features = {}
         self.train_set = {}
@@ -25,6 +28,17 @@ class Configurator():
         self.metric = None
         self.crash_cost = 0
         self.ac = None
+
+        if not os.path.exists('OAT'):
+            print('True')
+            urllib.request.urlretrieve('https://docs.optano.com/algorithm.tuner/current/OPTANO.Algorithm.Tuner.Application.2.1.0_linux-x64.zip', 'OAT/OAT.zip')
+            with zipfile.ZipFile('OAT/OAT.zip', 'r') as zip_ref:
+                zip_ref.extractall('OAT')
+            if os.path.isfile('OAT/OAT.zip'):
+                os.remove('OAT/OAT.zip')
+
+
+
 
     def get_instance_features(self, instance_features=None):
         self.instance_features = instance_features
@@ -206,6 +220,8 @@ class Configurator():
             for inst in instances:
                 if metric == 'runtime':
                     start = timeit.default_timer()
+
+                incumbent = gaci.transform_conf_from_ac(ac_tool, engine, incumbent)
 
                 f = \
                     gaci.run_engine_config(ac_tool, incumbent,

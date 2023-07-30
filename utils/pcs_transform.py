@@ -13,7 +13,9 @@ def transform_pcs(engine, configuration):
         for c in configuration.keys():
             config['-' + c] = str(configuration[c])
 
-    elif engine == 'fast-downward' or engine == 'pyperplan':
+    elif engine == 'fast-downward' or \
+            engine == 'pyperplan' or \
+            engine == 'symk':
         for c in configuration.keys():
             config[c] = str(configuration[c])
 

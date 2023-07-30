@@ -122,7 +122,7 @@ class GenericACInterface():
                 for al in add_list:
                     config[al] = ''
 
-            if engine == 'fast-downward':
+            if engine == 'fast-downward' or engine == 'symk':
 
                 evals = ['eager_greedy', 'eager_wastar',
                          'lazy_greedy', 'lazy_wastar']
@@ -131,44 +131,50 @@ class GenericACInterface():
                               'type_based']
                 pruning = ['atom_centric_stubborn_sets']
 
-                search_option = config['fast_downward_search_config'] + '('
+                if len(config) == 1:
+                    pass
+                else:
+                    search_option = config['fast_downward_search_config'] + '('                    
+                    if 'evaluator' in config:
+                        if config['evaluator'] in evals:
+                            search_option += '[' + str(config['evaluator']) + '()], '
+                        else:
+                            search_option += str(config['evaluator']) + '(), '
 
-                if 'evaluator' in config:
-                    if config['evaluator'] in evals:
-                        search_option += '[' + str(config['evaluator']) + '()], '
+                    if 'open' in config:
+                        if config['open'] not in open_eval and \
+                            config['open'] not in open_evals:
+                            search_option += '[' + str(config['open']) + '()], '
+                        elif config['open'] in open_eval:
+                            search_option += '[' + str(config['open']) + '(' + str(config['open_list_evals']) + ')], '
+                        elif config['open'] in open_evals:
+                            search_option += '[' + str(config['open']) + '([]' + str(config['open_list_evals']) + '])], '
+
+                    if 'evaluator' in config:
+                        if config['evaluator'] == 'ehc':
+                            search_option += 'preferred_usage=' + str(config['ehc_preferred_usage']) + ','
+
+                    if 'reopen_closed' in config:
+                        search_option += 'reopen_closed=' + str(config['reopen_closed']) + ','
+
+                    if 'randomize_successors' in config:
+                        search_option += 'randomize_successors=' + str(config['randomize_successors']) + ','
+
+                    if 'pruning' in config:
+                        if config['pruning'] in pruning:
+                            search_option += 'pruning=' + str(config['pruning']) + '(use_sibling_shortcut=' \
+                                + config['atom_centric_stubborn_sets_use_sibling'] + \
+                                ',atom_selection_strategy=' + config['atom_selection_strategy'] + '(), '
+                        else:
+                            search_option += 'pruning=' + str(config['pruning']) + '(),'
+
+                    search_option += 'cost_type=' + config['cost_type'] + ')'
+                    search_option = search_option.replace(" ", "")
+
+                    if engine == 'fast-downward':
+                        config = {'fast_downward_search_config': search_option}
                     else:
-                        search_option += str(config['evaluator']) + '(), '
-
-                if 'open' in config:
-                    if config['open'] not in open_eval and \
-                        config['open'] not in open_evals:
-                        search_option += '[' + str(config['open']) + '()], '
-                    elif config['open'] in open_eval:
-                        search_option += '[' + str(config['open']) + '(' + str(config['open_list_evals']) + ')], '
-                    elif config['open'] in open_evals:
-                        search_option += '[' + str(config['open']) + '([]' + str(config['open_list_evals']) + '])], '
-
-                if config['evaluator'] == 'ehc':
-                    search_option += 'preferred_usage=' + str(config['ehc_preferred_usage']) + ','
-
-                if 'reopen_closed' in config:
-                    search_option += 'reopen_closed=' + str(config['reopen_closed']) + ','
-
-                if 'randomize_successors' in config:
-                    search_option += 'randomize_successors=' + str(config['randomize_successors']) + ','
-
-                if 'pruning' in config:
-                    if config['pruning'] in pruning:
-                        search_option += 'pruning=' + str(config['pruning']) + '(use_sibling_shortcut=' \
-                            + config['atom_centric_stubborn_sets_use_sibling'] + \
-                            ',atom_selection_strategy=' + config['atom_selection_strategy'] + '(), '
-                    else:
-                        search_option += 'pruning=' + str(config['pruning']) + '(),'
-
-                search_option += 'cost_type=' + config['cost_type'] + ')'
-                search_option = search_option.replace(" ", "")
-
-                config = {'fast_downward_search_config': search_option}
+                        config = {'symk_search_config': search_option}
 
             else:
                 config = configuration
@@ -270,6 +276,24 @@ class GenericACInterface():
         if plantype == 'OneshotPlanner':
             config = self.transform_conf_from_ac(ac_tool, engine, config)
             with OneshotPlanner(name=engine,
+                                params=config) as planner:
+                try:
+                    result = planner.solve(problem)
+                    if (result.status ==
+                            up.engines.PlanGenerationResultStatus.
+                            SOLVED_SATISFICING):
+                        print("Result found.\n")
+                    else:
+                        print("No plan found.\n")
+                    feedback = self.get_feedback(engine, metric, result)
+                except:
+                    print("No plan found.\n")
+                    feedback = None
+
+        elif plantype == 'AnytimePlanner':
+            config = self.transform_conf_from_ac(ac_tool, engine, config)
+            print('CONFIG',config)
+            with AnytimePlanner(name=engine,
                                 params=config) as planner:
                 try:
                     result = planner.solve(problem)
