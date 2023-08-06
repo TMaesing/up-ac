@@ -85,7 +85,7 @@ max_num_flips [-1, 1000] [-1]i
 onlybestfirst {0, 1} [0] # FLAG
 onlysearchcostx1stsol {0, 1} [0] # FLAG
 penalization_coeff [1, 10] [2]i
-penalize_inconsistence [0, 10000000000] [0]i
+penalize_inconsistence [0, 10000000] [0]i
 searchcostx1stsol {0, 1} [0] # FLAG
 total_time_goal {0, 1} [0] # FLAG
 verifyincchoice {0, 1} [0] # FLAG
@@ -103,7 +103,8 @@ lm_incrme | lagrange in {1}
 lm_incrprec | lagrange in {1}
 lm_multilevel | lagrange in {1}
 numrestart | bestfirst in {0, 1}
-tabu_length | twalkplan in {0} && walkplan in {0}
+tabu_length | twalkplan in {0} 
+tabu_length | walkplan in {0}
 
 # forbidden
 {numrestart=1,bestfirst=0}

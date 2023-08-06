@@ -18,6 +18,10 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
+from ConfigSpace.conditions import (
+AndConjunction,
+EqualsCondition
+)
 
 pcs = patch_pcs(pcs)
 
@@ -179,9 +183,12 @@ class GenericACInterface():
             else:
                 config = configuration
 
+        elif ac_tool == 'OAT':
+            config = configuration
+
         return config
 
-    def get_df_irace(self, param_space, engine):
+    def get_ps_irace(self, param_space):
 
         conditionals = param_space.get_all_conditional_hyperparameters()
         params = param_space.get_hyperparameters_dict()
@@ -235,6 +242,152 @@ class GenericACInterface():
 
         return default_conf
 
+    def get_ps_oat(self, param_space):
+        '''
+        OAT does not handle forbidden parameter value combinations.
+        OAT can handle multiple parent and 1 child conditionals,
+        but not one parent multiple children conditionals.
+        We naively just take the first one in the list.
+        OAT does not support conditionals that are conditional.
+        We leave them out naively.
+        Oat does not support conditionals with value ranges.
+        We naively only use the first value.
+
+        Note: Although this is suboptimal, invalid configurations will
+        lead to crah or bad results such that OAT will rate them
+        as subpar.
+        '''
+
+        param_file = '<?xml version="1.0" encoding="utf-8" ?>\n'
+        param_file += '<node xsi:type="and" xsi:noNamespaceSchemaLocation="../parameterTree.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n'
+
+        conditional_params = param_space.get_all_conditional_hyperparameters()
+
+        hyperparameters = param_space.get_hyperparameters()
+        to_set = []
+        for hp in hyperparameters:
+            to_set.append(hp.name)
+        params_dict = param_space.get_hyperparameters_dict()
+
+        conditions = param_space.get_conditions()
+
+        parents = {}
+        for cond in conditions:
+            if not isinstance(cond, AndConjunction):
+                if cond.parent.name not in parents:
+                    parents[cond.parent.name] = {cond.child.name: [cond.value, cond.child]}
+                else:
+                    parents[cond.parent.name][cond.child.name] = [cond.value, cond.child]
+            else:
+                for c in cond.components:
+                    if c.parent.name not in parents:
+                        parents[c.parent.name] = {c.child.name: [c.value, c.child]}
+                    else:
+                        parents[c.parent.name][c.child.name] = [c.value, c.child]
+
+        print(parents)
+
+        def set_conditionals(children, param_file, to_set, parents, tab=''):
+            for child, value in children.items():
+                if child in to_set:
+                    if isinstance(value[0], list):
+                        value[0] = value[0][0]
+                    param_file += f'{tab}\t\t<choice>\n'
+                    param_file += f'{tab}\t\t\t<string>{value[0]}</string>\n'
+                    param_file += f'{tab}\t\t\t<child xsi:type="value" id="{child}">\n'
+                    if isinstance(value[1], CategoricalHyperparameter):
+                        choices = ''
+                        for c in value[1].choices:
+                            choices += f'{c} '
+                        param_file += f'{tab}\t\t\t\t<domain xsi:type="categorical" strings="{choices[:-1]}" defaultIndexOrValue="{value[1].choices.index(value[1].default_value)}"/>\n'
+                        param_file += f'{tab}\t\t\t</child>\n'
+                        param_file += f'{tab}\t\t</choice>\n'
+                    elif isinstance(value[1], UniformIntegerHyperparameter):
+                        if value[1].lower < -2147483647:
+                            lower = -2147483647
+                        else:
+                            lower = value[1].lower
+                        if value[1].upper > 2147483647:
+                            upper = 2147483647
+                        else:
+                            upper = value[1].upper
+                        param_file += f'{tab}\t\t\t\t<domain xsi:type="discrete" start="{lower}" end="{upper}" defaultIndexOrValue="{value[1].default_value}"/>\n'
+                        param_file += f'{tab}\t\t\t</child>\n'
+                        param_file += f'{tab}\t\t</choice>\n'
+                    elif isinstance(value[1], UniformFloatHyperparameter):
+                        param_file += f'{tab}\t\t\t\t<domain xsi:type="continuous" start="{value[1].lower}" end="{value[1].upper}" defaultIndexOrValue="{value[1].default_value}"/>\n'
+                        param_file += f'{tab}\t\t\t</child>\n'
+                        param_file += f'{tab}\t\t</choice>\n'
+
+                    to_set.remove(child)              
+
+            return param_file, to_set
+
+        for param in hyperparameters:
+            if param.name in to_set:
+                if param.name in parents and parents[param.name].keys() in to_set:
+                    param_file += f'\t<node xsi:type="or" id="{param.name}">\n'
+                    if isinstance(param, CategoricalHyperparameter):
+                        choices = ''
+                        for c in param.choices:
+                            choices += f'{c} '
+                        param_file += f'\t\t<domain xsi:type="categorical" strings="{choices[:-1]}" defaultIndexOrValue="{param.choices.index(param.default_value)}"/>\n'
+
+                        children = parents[param.name]
+                        param_file, to_set = set_conditionals(children, param_file, to_set, parents)
+                        param_file += '\t</node>\n'
+                        
+
+                    elif isinstance(param, UniformIntegerHyperparameter):
+                        if param.lower < -2147483647:
+                            lower = -2147483647
+                        else:
+                            lower = param.lower
+                        if param.upper > 2147483647:
+                            upper = 2147483647
+                        else:
+                            upper = param.upper
+                        param_file += f'  <domain xsi:type="discrete" start="{lower}" end="{upper}" defaultIndexOrValue="{param.default_value}"/>\n'
+
+                        children = parents[param.name]
+                        param_file, to_set = set_conditionals(children, param_file, to_set, parents)
+                        param_file += '\t</node>\n'
+
+                    elif isinstance(param, UniformFloatHyperparameter):
+                        param_file += f'\t\t<domain xsi:type="continuous" start="{param.lower}" end="{param.upper}" defaultIndexOrValue="{param.default_value}"/>\n'
+                        
+                        children = parents[param.name]
+                        param_file, to_set = set_conditionals(children, param_file, to_set, parents)
+                        param_file += '\t</node>\n'
+                else:
+                    param_file += f'\t<node xsi:type="value" id="{param.name}">\n'
+                    if isinstance(param, CategoricalHyperparameter):
+                        choices = ''
+                        for c in param.choices:
+                            choices += f'{c} '
+                        param_file += f'\t\t<domain xsi:type="categorical" strings="{choices[:-1]}" defaultIndexOrValue="{param.choices.index(param.default_value)}"/>\n'
+                        param_file += '\t</node>\n'
+                    elif isinstance(param, UniformIntegerHyperparameter):
+                        if param.lower < -2147483647:
+                            lower = -2147483647
+                        else:
+                            lower = param.lower
+                        if param.upper > 2147483647:
+                            upper = 2147483647
+                        else:
+                            upper = param.upper
+                        param_file += f'\t\t<domain xsi:type="discrete" start="{lower}" end="{upper}" defaultIndexOrValue="{param.default_value}"/>\n'
+                        param_file += '\t</node>\n'
+                    elif isinstance(param, UniformFloatHyperparameter):
+                        param_file += f'\t\t<domain xsi:type="continuous" start="{param.lower}" end="{param.upper}" defaultIndexOrValue="{param.default_value}"/>\n'
+                        param_file += '\t</node>\n'
+
+                to_set.remove(param.name)
+
+        param_file += '</node>\n'
+
+        return param_file
+
     def transform_param_space(self, ac_tool, pcs):
         """Transform configuration to AC tool format.
 
@@ -264,7 +417,7 @@ class GenericACInterface():
 
         return feedback
 
-    def run_engine_config(self, ac_tool, config, metric, engine, plantype, problem):
+    def run_engine_config(self, ac_tool, config, metric, engine, plantype, problem, gray_box_listener=None):
         """Execute configurated engine run.
 
         paremer config: configuration of engine.
@@ -275,37 +428,70 @@ class GenericACInterface():
         """
         if plantype == 'OneshotPlanner':
             config = self.transform_conf_from_ac(ac_tool, engine, config)
-            with OneshotPlanner(name=engine,
-                                params=config) as planner:
-                try:
-                    result = planner.solve(problem)
-                    if (result.status ==
-                            up.engines.PlanGenerationResultStatus.
-                            SOLVED_SATISFICING):
-                        print("Result found.\n")
-                    else:
+            if gray_box_listener is not None:
+                with OneshotPlanner(name=engine,
+                                    params=config,
+                                    output_stream=gray_box_listener) as planner:
+                    try:
+                        result = planner.solve(problem)
+                        if (result.status ==
+                                up.engines.PlanGenerationResultStatus.
+                                SOLVED_SATISFICING):
+                            print("Result found.\n")
+                        else:
+                            print("No plan found.\n")
+                        feedback = self.get_feedback(engine, metric, result)
+                    except:
                         print("No plan found.\n")
-                    feedback = self.get_feedback(engine, metric, result)
-                except:
-                    print("No plan found.\n")
-                    feedback = None
+                        feedback = None
+            else:
+                with OneshotPlanner(name=engine,
+                                    params=config) as planner:
+                    try:
+                        result = planner.solve(problem)
+                        if (result.status ==
+                                up.engines.PlanGenerationResultStatus.
+                                SOLVED_SATISFICING):
+                            print("Result found.\n")
+                        else:
+                            print("No plan found.\n")
+                        feedback = self.get_feedback(engine, metric, result)
+                    except:
+                        print("No plan found.\n")
+                        feedback = None
 
         elif plantype == 'AnytimePlanner':
             config = self.transform_conf_from_ac(ac_tool, engine, config)
-            print('CONFIG',config)
-            with AnytimePlanner(name=engine,
-                                params=config) as planner:
-                try:
-                    result = planner.solve(problem)
-                    if (result.status ==
-                            up.engines.PlanGenerationResultStatus.
-                            SOLVED_SATISFICING):
-                        print("Result found.\n")
-                    else:
+            if gray_box_listener is not None:
+                with AnytimePlanner(name=engine,
+                                    params=config,
+                                    output_stream=gray_box_listener) as planner:
+                    try:
+                        result = planner.solve(problem)
+                        if (result.status ==
+                                up.engines.PlanGenerationResultStatus.
+                                SOLVED_SATISFICING):
+                            print("Result found.\n")
+                        else:
+                            print("No plan found.\n")
+                        feedback = self.get_feedback(engine, metric, result)
+                    except:
                         print("No plan found.\n")
-                    feedback = self.get_feedback(engine, metric, result)
-                except:
-                    print("No plan found.\n")
-                    feedback = None
+                        feedback = None
+            else:
+                with AnytimePlanner(name=engine,
+                                    params=config) as planner:
+                    try:
+                        result = planner.solve(problem)
+                        if (result.status ==
+                                up.engines.PlanGenerationResultStatus.
+                                SOLVED_SATISFICING):
+                            print("Result found.\n")
+                        else:
+                            print("No plan found.\n")
+                        feedback = self.get_feedback(engine, metric, result)
+                    except:
+                        print("No plan found.\n")
+                        feedback = None
 
         return feedback
