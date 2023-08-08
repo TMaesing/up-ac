@@ -5,6 +5,18 @@ from rpy2.robjects.packages import importr
 from rpy2.robjects import pandas2ri
 
 from AC_interface import GenericACInterface
+from utils.pcs_transform import transform_pcs
+
+from ConfigSpace.read_and_write import pcs
+from ConfigSpace.hyperparameters import (
+    CategoricalHyperparameter,
+    UniformFloatHyperparameter,
+    UniformIntegerHyperparameter,
+)
+from ConfigSpace.conditions import (
+AndConjunction,
+EqualsCondition
+)
 
 
 class IraceInterface(GenericACInterface):
@@ -14,7 +26,7 @@ class IraceInterface(GenericACInterface):
         """Initialize Irace interface."""
         GenericACInterface.__init__(self)
 
-    def transform_conf_from_ac(self, ac_tool, engine, configuration):
+    def transform_conf_from_ac(self, engine, configuration):
         """Transform configuration to up engine format.
 
         parameter ac_tool: str, name of AC tool in use.
@@ -151,9 +163,14 @@ class IraceInterface(GenericACInterface):
 
         forbidden += '\n'
 
+        if len(forbidden) > 2:
+            forbiddens = True
+        else:
+            forbiddens = False
+
         with open("forbidden.txt", "w") as text_file:
             text_file.write(forbidden)
 
         self.irace_param_space = irace_param_space
 
-        return default_conf
+        return default_conf, forbiddens

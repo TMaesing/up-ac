@@ -63,10 +63,10 @@ def runtime_feedback(engine, result):
                 feedback = float(line.split(' ')[-1][:-1])
 
     elif engine == 'pyperplan':
-        feedback = None
+        feedback = 'measure'
 
     elif engine == 'tamer':
-        feedback = None
+        feedback = 'measure'
 
     elif engine == 'enhsp':
         output = result.log_messages[0].message.split('\n')

@@ -1,5 +1,6 @@
 """Smac algorithm configuration interface for unified planning."""
 from AC_interface import GenericACInterface
+from utils.pcs_transform import transform_pcs
 
 class SmacInterface(GenericACInterface):
     """Generic Smac interface."""
@@ -8,7 +9,7 @@ class SmacInterface(GenericACInterface):
         """Initialize Smac interface."""
         GenericACInterface.__init__(self)
 
-    def transform_conf_from_ac(self, ac_tool, engine, configuration):
+    def transform_conf_from_ac(self, engine, configuration):
         """Transform configuration to up engine format.
 
         parameter ac_tool: str, name of AC tool in use.
@@ -39,7 +40,7 @@ class SmacInterface(GenericACInterface):
             for al in add_list:
                 config[al] = ''
 
-        if engine == 'fast-downward' or engine == 'symk':
+        elif engine == 'fast-downward' or engine == 'symk':
 
             evals = ['eager_greedy', 'eager_wastar',
                      'lazy_greedy', 'lazy_wastar']
@@ -48,8 +49,9 @@ class SmacInterface(GenericACInterface):
                           'type_based']
             pruning = ['atom_centric_stubborn_sets']
 
-            if len(config) == 1:
+            if len(config) in (0, 1):
                 pass
+
             else:
                 search_option = config['fast_downward_search_config'] + '('                    
                 if 'evaluator' in config:
@@ -93,20 +95,11 @@ class SmacInterface(GenericACInterface):
                 else:
                     config = {'symk_search_config': search_option}
 
-        else:
-            config = configuration
+        elif engine in ('enhsp', 'tamer', 'pyperplan'):
+            if isinstance(configuration, dict):
+                config = configuration
+            else:
+                config = configuration.get_dictionary()
 
         return config
 
-    def transform_param_space(self, ac_tool, pcs):
-        """Transform configuration to AC tool format.
-
-        parameter pcs: ConfigSpace object, parameter space.
-        parameter ac_tool: str, AC tool in use.
-
-        return param_space: transformed parameter space.
-        """
-        if ac_tool == 'SMAC':  # SMAC uses ConfigSpace
-            param_space = pcs
-
-        return param_space

@@ -10,7 +10,7 @@ import subprocess
 import dill 
 import shutil
 
-class Configurator(Configurator):
+class OATConfigurator(Configurator):
     """Configurator functions."""
 
     def __init__(self):

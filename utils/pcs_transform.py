@@ -33,14 +33,3 @@ def transform_pcs(engine, configuration):
 
     return config
 
-
-def transform_from_oat(engine, configuration):
-    """Transform specific engine output to.
-
-    parameter engine: str, name of engine.
-    parameter configuration: pcs object, configuration as pcs.
-    """
-    # TODO
-    config = {}
-
-    return config
