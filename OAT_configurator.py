@@ -10,6 +10,7 @@ import subprocess
 import dill 
 import shutil
 
+
 class OATConfigurator(Configurator):
     """Configurator functions."""
 
@@ -37,7 +38,19 @@ class OATConfigurator(Configurator):
                     
         return config
 
-    def get_feedback_function(self, ac_tool, gaci, engine, metric, mode, gray_box=False):
+    def get_feedback_function(self, gaci, engine, metric, mode,
+                              gray_box=False):
+        """
+        Generate the function to run engine and get feedback.
+
+        paremer gaci: AC interface object.
+        parameter engine: str, engine name.
+        parameter metric: str, 'runtime' or 'quality'
+        parameter mode: str, type of planning.
+        parameter gray_box: True, if gra box to use
+
+        return planner_feedback: function, planner feedback function.
+        """
         if engine in self.capabilities[metric][mode]:
             self.metric = metric
 
@@ -46,6 +59,7 @@ class OATConfigurator(Configurator):
                     def __init__(self, q, res):
                         self.q = q
                         self.res = res
+
                     def write(self, txt):
                         # TODO
                         # pass output to configurator
@@ -62,18 +76,16 @@ class OATConfigurator(Configurator):
                     start = timeit.default_timer()
                 instance_p = f'{instance}'
                 domain_path = instance_p.rsplit('/', 1)[0]
-                out_file = instance_p.rsplit('/', 1)[1]
                 domain = f'{domain_path}/domain.pddl'
                 pddl_problem = self.reader.parse_problem(f'{domain}',
-                                                    f'{instance_p}')
+                                                         f'{instance_p}')
                 # gray box in OAT only works with runtime scenarios
                 if gray_box:
                     def planner_thread(gb_out, problem, res, ac_tool,
                                        config, metric, engine, mode, 
                                        pddl_problem):
                         res.put(
-                            gaci.run_engine_config(ac_tool,
-                                                   config,
+                            gaci.run_engine_config(config,
                                                    metric,
                                                    engine,
                                                    mode,
@@ -82,8 +94,8 @@ class OATConfigurator(Configurator):
 
                     thread = Thread(target=planner_thread,
                                     args=(gb_out, problem, res, ac_tool,
-                                    config, metric, engine, mode, 
-                                    pddl_problem),
+                                          config, metric, engine, mode, 
+                                          pddl_problem),
                                     daemon=True)
 
                     thread.start()
@@ -93,7 +105,7 @@ class OATConfigurator(Configurator):
                             output = q.get(False)
                         except:
                             output = None
-                        if output is not None and len(output) not in (0,1):
+                        if output is not None and len(output) not in (0, 1):
                             print('gray box:', output)
                         if not res.empty():
                             thread.join()
@@ -102,8 +114,7 @@ class OATConfigurator(Configurator):
 
                 else:
                     feedback = \
-                        gaci.run_engine_config(ac_tool,
-                                               config,
+                        gaci.run_engine_config(config,
                                                metric,
                                                engine,
                                                mode,
@@ -123,19 +134,44 @@ class OATConfigurator(Configurator):
                     return feedback
 
             path_to_OAT = 'path_to_OAT'
-            dill.dump(planner_feedback, open(f'{self.scenario[path_to_OAT]}feedback.pkl', 'wb'), recurse=True)
+            dill.dump(
+                planner_feedback, open(
+                    f'{self.scenario[path_to_OAT]}feedback.pkl', 'wb'),
+                recurse=True)
 
             planner_feedback = f'{self.scenario[path_to_OAT]}call_engine_OAT.py'
 
             return planner_feedback
         else:
-            print(f'Algorithm Configuration for {metric} of {ac_tool} in {mode} is not supported.')
+            print(f'Algorithm Configuration for {metric} of {ac_tool} in' + \
+                  ' {mode} is not supported.')
             return None
 
-    def set_scenario(self, ac_tool, engine, param_space, gaci, configuration_time=120,
-                     n_trials=400, min_budget=1, max_budget=3, crash_cost=0,
-                     planner_timelimit=30, n_workers=1, instances=[],
-                     instance_features=None, metric='runtime', popSize=128, evlaLimit=2147483647):
+    def set_scenario(self, ac_tool, engine, param_space, gaci,
+                     configuration_time=120, n_trials=400, min_budget=1,
+                     max_budget=3, crash_cost=0, planner_timelimit=30,
+                     n_workers=1, instances=[], instance_features=None,
+                     metric='runtime', popSize=128, evlaLimit=2147483647):
+        """
+        Set up algorithm configuration scenario.
+
+        parameter ac_tool: str, which configuration tol.
+        parameter engine: str, which engine.
+        parameter param_space: ConfigSpace object.
+        parameter gaci: AC interface object.
+        parameter configuration_time: int, overall configuration time budget.
+        parameter n_trials: int, max number of engine evaluations.
+        parameter min_budget: int, min number of instances to use.
+        parameter max_budget: int, max number of instances to use.
+        parameter crash_cost: int, which cost to use if engine fails.
+        parameter planner_timelimit: int, max runtime per evaluation.
+        parameter n_workers: int, no. of cores to utilize.
+        parameter instances: list, problem instance paths.
+        parameter instance_features: dict, inst names and lists of features.
+        parameter metric: str, optimization metric.
+        parameter popSize: int, populaton size of configs per generation (OAT).
+        parameter evlaLimit: int, max no. of evaluations (OAT).
+        """
         if not instances:
             instances = self.train_set
         self.crash_cost = crash_cost
@@ -165,15 +201,15 @@ class OATConfigurator(Configurator):
             file_name += 1
 
         scenario = dict(
-            xml = path_to_xml,
-            timelimit = planner_timelimit,
-            wallclock = configuration_time,
-            start_gen = min_budget,
-            end_gen = max_budget,
-            n_workers = n_workers,
-            metric = metric,
-            instance_dir = inst_dir,
-            path_to_OAT = oat_dir,
+            xml=path_to_xml,
+            timelimit=planner_timelimit,
+            wallclock=configuration_time,
+            start_gen=min_budget,
+            end_gen=max_budget,
+            n_workers=n_workers,
+            metric=metric,
+            instance_dir=inst_dir,
+            path_to_OAT=oat_dir,
             popSize=popSize,
             evlaLimit=evlaLimit
         )
@@ -181,13 +217,20 @@ class OATConfigurator(Configurator):
         self.scenario = scenario
 
     def optimize(self, ac_tool, feedback_function=None, gray_box=False):
+        """
+        Run the algrithm configuration.
+
+        parameter ac_tool: str, which AC tool.
+        parameter feedback_function: function to run engine and get feedback.
+        parameter gray_box: True, if gray box usage.
+        """
         if feedback_function is not None:
 
             print('\nStarting Parameter optimization\n')
 
             if self.scenario['metric'] == 'quality':
                 tunefor = ' --byValue '
-            elif self.scenario['metric']== 'runtime':
+            elif self.scenario['metric'] == 'runtime':
                 tunefor = ' --enableRacing=true '
             
             n_workers = self.scenario['n_workers']
@@ -200,21 +243,25 @@ class OATConfigurator(Configurator):
             evalLimit = self.scenario['evlaLimit']
             popSize = self.scenario['popSize']
 
-
-            p = subprocess.Popen([f'./Optano.Algorithm.Tuner.Application --master' +
+            p = subprocess.Popen(['./Optano.Algorithm.Tuner.Application' +
+                                  ' --master' +
                                   f' --maxParallelEvaluations={n_workers} ' + 
-                                  f'--basicCommand=\"python3 {feedback_function} {{instance}} {{arguments}}\"' + 
+                                  '--basicCommand=\"python3 ' + 
+                                  f'{feedback_function} {{instance}} ' + 
+                                  '{{arguments}}\"' + 
                                   f' --parameterTree={param_space} ' + 
-                                  f'--trainingInstanceFolder=\"{instance_folder}\" ' + 
+                                  '--trainingInstanceFolder' +
+                                  f'=\"{instance_folder}\" ' + 
                                   f'--cpuTimeout={planner_timelimit}' + 
                                   f'{tunefor}' + 
                                   f'--numGens={max_budget} ' + 
                                   f'--goalGen={min_budget} ' +
-                                  f'--instanceNumbers={min_budget}:{max_budget} ' +
+                                  f'--instanceNumbers={min_budget}:' +
+                                  '{max_budget} ' +
                                   f'--evaluationLimit={evalLimit} ' +
                                   f'--popSize={popSize}'],
-                                  stdout=subprocess.PIPE, stdin=subprocess.PIPE,
-                                  cwd=f'{path_to_OAT[:-1]}', shell=True)
+                                 stdout=subprocess.PIPE, stdin=subprocess.PIPE,
+                                 cwd=f'{path_to_OAT[:-1]}', shell=True)
 
             while p.poll() is None:
                 line = p.stdout.readline()
@@ -222,7 +269,8 @@ class OATConfigurator(Configurator):
 
             self.incumbent = self.get_OAT_incumbent()
 
-            print(f'\nBest Configuration found by {ac_tool} is:\n', self.incumbent)
+            print(f'\nBest Configuration found by {ac_tool} is:\n',
+                  self.incumbent)
 
             return self.incumbent, None
         else:

@@ -32,4 +32,3 @@ def transform_pcs(engine, configuration):
             config[c] = configuration[c]
 
     return config
-

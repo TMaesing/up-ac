@@ -1,7 +1,6 @@
 import dill
 from unified_planning.io import PDDLReader
 import sys
-import warnings
 import os
 
 # Read problem instance path

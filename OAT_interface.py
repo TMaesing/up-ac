@@ -11,6 +11,7 @@ from ConfigSpace.conditions import (
     AndConjunction
 )
 
+
 class OATInterface(GenericACInterface):
     """OAT AC interface."""
 
@@ -21,7 +22,6 @@ class OATInterface(GenericACInterface):
     def transform_conf_from_ac(self, engine, configuration):
         """Transform configuration to up engine format.
 
-        parameter ac_tool: str, name of AC tool in use.
         parameter engines: list of str, names of engines.
         parameter configuration: dict, parameter names with values.
 
@@ -65,36 +65,46 @@ class OATInterface(GenericACInterface):
                 search_option = config['fast_downward_search_config'] + '('                    
                 if 'evaluator' in config:
                     if config['evaluator'] in evals:
-                        search_option += '[' + str(config['evaluator']) + '()], '
+                        search_option += \
+                            '[' + str(config['evaluator']) + '()], '
                     else:
                         search_option += str(config['evaluator']) + '(), '
 
                 if 'open' in config:
                     if config['open'] not in open_eval and \
-                        config['open'] not in open_evals:
+                            config['open'] not in open_evals:
                         search_option += '[' + str(config['open']) + '()], '
                     elif config['open'] in open_eval:
-                        search_option += '[' + str(config['open']) + '(' + str(config['open_list_evals']) + ')], '
+                        search_option += '[' + str(config['open']) + '(' + \
+                            str(config['open_list_evals']) + ')], '
                     elif config['open'] in open_evals:
-                        search_option += '[' + str(config['open']) + '([]' + str(config['open_list_evals']) + '])], '
+                        search_option += '[' + str(config['open']) + '([]' + \
+                            str(config['open_list_evals']) + '])], '
 
                 if 'evaluator' in config:
                     if config['evaluator'] == 'ehc':
-                        search_option += 'preferred_usage=' + str(config['ehc_preferred_usage']) + ','
+                        search_option += 'preferred_usage=' + \
+                            str(config['ehc_preferred_usage']) + ','
 
                 if 'reopen_closed' in config:
-                    search_option += 'reopen_closed=' + str(config['reopen_closed']) + ','
+                    search_option += 'reopen_closed=' + \
+                        str(config['reopen_closed']) + ','
 
                 if 'randomize_successors' in config:
-                    search_option += 'randomize_successors=' + str(config['randomize_successors']) + ','
+                    search_option += 'randomize_successors=' + \
+                        str(config['randomize_successors']) + ','
 
                 if 'pruning' in config:
                     if config['pruning'] in pruning:
-                        search_option += 'pruning=' + str(config['pruning']) + '(use_sibling_shortcut=' \
-                            + config['atom_centric_stubborn_sets_use_sibling'] + \
-                            ',atom_selection_strategy=' + config['atom_selection_strategy'] + '(), '
+                        search_option += 'pruning=' + \
+                            str(config['pruning']) + '(use_sibling_shortcut=' \
+                            + config[
+                                'atom_centric_stubborn_sets_use_sibling'] + \
+                            ',atom_selection_strategy=' + \
+                            config['atom_selection_strategy'] + '(), '
                     else:
-                        search_option += 'pruning=' + str(config['pruning']) + '(),'
+                        search_option += 'pruning=' + \
+                            str(config['pruning']) + '(),'
 
                 search_option += 'cost_type=' + config['cost_type'] + ')'
                 search_option = search_option.replace(" ", "")
@@ -106,11 +116,12 @@ class OATInterface(GenericACInterface):
 
         elif engine in ('enhsp', 'tamer', 'pyperplan'):
             config = {}
-            for param in self.engine_param_spaces[engine].get_hyperparameters():
+            for param in \
+                    self.engine_param_spaces[engine].get_hyperparameters():
                 if isinstance(param, UniformFloatHyperparameter):
-                   config[param.name] = float(configuration[param.name])
+                    config[param.name] = float(configuration[param.name])
                 elif isinstance(param, UniformIntegerHyperparameter):
-                   config[param.name] = int(configuration[param.name])
+                    config[param.name] = int(configuration[param.name])
  
         return config
 
@@ -128,18 +139,20 @@ class OATInterface(GenericACInterface):
         Note: Although this is suboptimal, invalid configurations will
         lead to crah or bad results such that OAT will rate them
         as subpar.
+
+        parametr param_space: ConfigSpace object.
         '''
 
         param_file = '<?xml version="1.0" encoding="utf-8" ?>\n'
-        param_file += '<node xsi:type="and" xsi:noNamespaceSchemaLocation="../parameterTree.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n'
-
-        conditional_params = param_space.get_all_conditional_hyperparameters()
+        param_file += \
+            '<node xsi:type="and" xsi:noNamespaceSchemaLocation="' + \
+            '../parameterTree.xsd" xmlns:xsi="http://www.w3.org/' + \
+            '2001/XMLSchema-instance">\n'
 
         hyperparameters = param_space.get_hyperparameters()
         to_set = []
         for hp in hyperparameters:
             to_set.append(hp.name)
-        params_dict = param_space.get_hyperparameters_dict()
 
         conditions = param_space.get_conditions()
 
@@ -147,29 +160,48 @@ class OATInterface(GenericACInterface):
         for cond in conditions:
             if not isinstance(cond, AndConjunction):
                 if cond.parent.name not in parents:
-                    parents[cond.parent.name] = {cond.child.name: [cond.value, cond.child]}
+                    parents[cond.parent.name] = \
+                        {cond.child.name: [cond.value, cond.child]}
                 else:
-                    parents[cond.parent.name][cond.child.name] = [cond.value, cond.child]
+                    parents[cond.parent.name][cond.child.name] = \
+                        [cond.value, cond.child]
             else:
                 for c in cond.components:
                     if c.parent.name not in parents:
-                        parents[c.parent.name] = {c.child.name: [c.value, c.child]}
+                        parents[c.parent.name] = \
+                            {c.child.name: [c.value, c.child]}
                     else:
-                        parents[c.parent.name][c.child.name] = [c.value, c.child]
+                        parents[c.parent.name][c.child.name] = \
+                            [c.value, c.child]
 
         def set_conditionals(children, param_file, to_set, parents, tab=''):
+            """
+            Set conditional relations between parameters.
+
+            parameter children: dict, child parameters.
+            parameter param_file: str, OAT parameter tree to be saved in xml.
+            parameter to_set: list, parameter names to still be included.
+            parameter parents: dict, parent parameters.
+            parameter tab: str, indicates depth of tree (\t).
+
+            return param_file: str, OAT parameter tree to be saved in xml.
+            """
             for child, value in children.items():
                 if child in to_set:
                     if isinstance(value[0], list):
                         value[0] = value[0][0]
                     param_file += f'{tab}\t\t<choice>\n'
                     param_file += f'{tab}\t\t\t<string>{value[0]}</string>\n'
-                    param_file += f'{tab}\t\t\t<child xsi:type="value" id="{child}">\n'
+                    param_file += \
+                        f'{tab}\t\t\t<child xsi:type="value" id="{child}">\n'
                     if isinstance(value[1], CategoricalHyperparameter):
                         choices = ''
                         for c in value[1].choices:
                             choices += f'{c} '
-                        param_file += f'{tab}\t\t\t\t<domain xsi:type="categorical" strings="{choices[:-1]}" defaultIndexOrValue="{value[1].choices.index(value[1].default_value)}"/>\n'
+                        param_file += f'{tab}\t\t\t\t<domain xsi:type=' + \
+                            '"categorical" strings="{choices[:-1]}" ' + \
+                            'defaultIndexOrValue="{value[1].choices.' + \
+                            'index(value[1].default_value)}"/>\n'
                         param_file += f'{tab}\t\t\t</child>\n'
                         param_file += f'{tab}\t\t</choice>\n'
                     elif isinstance(value[1], UniformIntegerHyperparameter):
@@ -181,11 +213,17 @@ class OATInterface(GenericACInterface):
                             upper = 2147483647
                         else:
                             upper = value[1].upper
-                        param_file += f'{tab}\t\t\t\t<domain xsi:type="discrete" start="{lower}" end="{upper}" defaultIndexOrValue="{value[1].default_value}"/>\n'
+                        param_file += f'{tab}\t\t\t\t<domain xsi:type=' + \
+                            f'"discrete" start="{lower}" end="{upper}" ' + \
+                            'defaultIndexOrValue=' + \
+                            f'"{value[1].default_value}"/>\n'
                         param_file += f'{tab}\t\t\t</child>\n'
                         param_file += f'{tab}\t\t</choice>\n'
                     elif isinstance(value[1], UniformFloatHyperparameter):
-                        param_file += f'{tab}\t\t\t\t<domain xsi:type="continuous" start="{value[1].lower}" end="{value[1].upper}" defaultIndexOrValue="{value[1].default_value}"/>\n'
+                        param_file += f'{tab}\t\t\t\t<domain xsi:type=' + \
+                            f'"continuous" start="{value[1].lower}" end=' + \
+                            f'"{value[1].upper}" defaultIndexOrValue=' + \
+                            f'"{value[1].default_value}"/>\n'
                         param_file += f'{tab}\t\t\t</child>\n'
                         param_file += f'{tab}\t\t</choice>\n'
 
@@ -195,18 +233,23 @@ class OATInterface(GenericACInterface):
 
         for param in hyperparameters:
             if param.name in to_set:
-                if param.name in parents and parents[param.name].keys() in to_set:
+                if param.name in parents and \
+                        parents[param.name].keys() in to_set:
                     param_file += f'\t<node xsi:type="or" id="{param.name}">\n'
                     if isinstance(param, CategoricalHyperparameter):
                         choices = ''
                         for c in param.choices:
                             choices += f'{c} '
-                        param_file += f'\t\t<domain xsi:type="categorical" strings="{choices[:-1]}" defaultIndexOrValue="{param.choices.index(param.default_value)}"/>\n'
+                        param_file += \
+                            '\t\t<domain xsi:type="categorical" strings=' + \
+                            f'"{choices[:-1]}" defaultIndexOrValue=' + \
+                            f'"{param.choices.index(param.default_value)}"/>\n'
 
                         children = parents[param.name]
-                        param_file, to_set = set_conditionals(children, param_file, to_set, parents)
-                        param_file += '\t</node>\n'
-                        
+                        param_file, to_set = \
+                            set_conditionals(children, param_file, to_set,
+                                             parents)
+                        param_file += '\t</node>\n'                       
 
                     elif isinstance(param, UniformIntegerHyperparameter):
                         if param.lower < -2147483647:
@@ -217,25 +260,39 @@ class OATInterface(GenericACInterface):
                             upper = 2147483647
                         else:
                             upper = param.upper
-                        param_file += f'  <domain xsi:type="discrete" start="{lower}" end="{upper}" defaultIndexOrValue="{param.default_value}"/>\n'
+                        param_file += \
+                            '  <domain xsi:type="discrete" start=' + \
+                            f'"{lower}" end="{upper}" defaultIndexOrValue=' + \
+                            f'"{param.default_value}"/>\n'
 
                         children = parents[param.name]
-                        param_file, to_set = set_conditionals(children, param_file, to_set, parents)
+                        param_file, to_set = \
+                            set_conditionals(children, param_file, to_set,
+                                             parents)
                         param_file += '\t</node>\n'
 
                     elif isinstance(param, UniformFloatHyperparameter):
-                        param_file += f'\t\t<domain xsi:type="continuous" start="{param.lower}" end="{param.upper}" defaultIndexOrValue="{param.default_value}"/>\n'
+                        param_file += \
+                            '\t\t<domain xsi:type="continuous" start=' + \
+                            f'"{param.lower}" end="{param.upper}" ' + \
+                            f'defaultIndexOrValue="{param.default_value}"/>\n'
                         
                         children = parents[param.name]
-                        param_file, to_set = set_conditionals(children, param_file, to_set, parents)
+                        param_file, to_set = \
+                            set_conditionals(children, param_file, to_set,
+                                             parents)
                         param_file += '\t</node>\n'
                 else:
-                    param_file += f'\t<node xsi:type="value" id="{param.name}">\n'
+                    param_file += \
+                        f'\t<node xsi:type="value" id="{param.name}">\n'
                     if isinstance(param, CategoricalHyperparameter):
                         choices = ''
                         for c in param.choices:
                             choices += f'{c} '
-                        param_file += f'\t\t<domain xsi:type="categorical" strings="{choices[:-1]}" defaultIndexOrValue="{param.choices.index(param.default_value)}"/>\n'
+                        param_file += \
+                            '\t\t<domain xsi:type="categorical" strings=' + \
+                            f'"{choices[:-1]}" defaultIndexOrValue=' + \
+                            f'"{param.choices.index(param.default_value)}"/>\n'
                         param_file += '\t</node>\n'
                     elif isinstance(param, UniformIntegerHyperparameter):
                         if param.lower < -2147483647:
@@ -246,10 +303,15 @@ class OATInterface(GenericACInterface):
                             upper = 2147483647
                         else:
                             upper = param.upper
-                        param_file += f'\t\t<domain xsi:type="discrete" start="{lower}" end="{upper}" defaultIndexOrValue="{param.default_value}"/>\n'
+                        param_file += \
+                            '\t\t<domain xsi:type="discrete" start=' + \
+                            f'"{lower}" end="{upper}" defaultIndexOrValue=' + \
+                            f'"{param.default_value}"/>\n'
                         param_file += '\t</node>\n'
                     elif isinstance(param, UniformFloatHyperparameter):
-                        param_file += f'\t\t<domain xsi:type="continuous" start="{param.lower}" end="{param.upper}" defaultIndexOrValue="{param.default_value}"/>\n'
+                        param_file += '\t\t<domain xsi:type="continuous"' + \
+                            f' start="{param.lower}" end="{param.upper}"' + \
+                            f' defaultIndexOrValue="{param.default_value}"/>\n'
                         param_file += '\t</node>\n'
 
                 to_set.remove(param.name)

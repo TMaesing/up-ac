@@ -6,11 +6,11 @@ import os
 path = os.getcwd().rsplit('up-ac', 2)[0]
 path += 'up-ac'
 
-if not os.path.isfile(sys.path[0] + '/configurators.py') and 'up-ac' in sys.path[0]:
+if not os.path.isfile(sys.path[0] + '/configurators.py') and \
+        'up-ac' in sys.path[0]:
     sys.path.insert(0, sys.path[0].rsplit('up-ac', 2)[0] + 'up-ac')
 
 from AC_interface import GenericACInterface
-from configurators import Configurator
 
 gaci = GenericACInterface()
 

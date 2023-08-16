@@ -2,10 +2,8 @@
 import unified_planning
 from unified_planning.environment import get_environment
 from unified_planning.shortcuts import *
-from utils.pcs_transform import transform_pcs
 from utils.ac_feedback import qaul_feedback, runtime_feedback
 from utils.patches import patch_pcs
-import copy
 from tarski.io import PDDLReader as treader
 
 from ConfigSpace.read_and_write import pcs
@@ -77,21 +75,11 @@ class GenericACInterface():
                 self.engine_param_types[engine] = {}
                 for line in lines:
                     if '# FLAGS #' in line:
-                        self.engine_param_types[engine]['-'+line.split(' ')[0]] = 'FLAGS'
+                        self.engine_param_types[engine][
+                            '-' + line.split(' ')[0]] = 'FLAGS'
                     elif '# FLAG' in line:
-                        self.engine_param_types[engine]['-'+line.split(' ')[0]] = 'FLAG'
-
-    def transform_conf_from_ac(self, ac_tool, engine, configuration):
-        """Transform configuration to up engine format.
-
-        parameter ac_tool: str, name of AC tool in use.
-        parameter engines: list of str, names of engines.
-        parameter configuration: dict, parameter names with values.
-
-        return config: dict, configuration.
-        """
-
-        return config
+                        self.engine_param_types[engine][
+                            '-' + line.split(' ')[0]] = 'FLAG'
 
     def get_feedback(self, engine, fbtype, result):
         """Get feedback from planning engine after run.
@@ -107,12 +95,16 @@ class GenericACInterface():
 
         return feedback
 
-    def run_engine_config(self, ac_tool, config, metric, engine, plantype, problem, gray_box_listener=None):
+    def run_engine_config(self, config, metric, engine,
+                          plantype, problem, gray_box_listener=None):
         """Execute configurated engine run.
 
         paremer config: configuration of engine.
+        parameter metric: str, 'runtime' or 'quality'
         parameter engine: str, engine name.
         parameter plantype: str, type of planning.
+        parameter problem: str, path to problem instance
+        parameter gray_box_listener: True, if gra box to use
 
         return feedback: result from configurated engine run.
         """

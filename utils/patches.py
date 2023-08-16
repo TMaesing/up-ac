@@ -2,6 +2,7 @@
 import pyparsing
 from ConfigSpace.read_and_write.pcs import *
 
+
 def patch_pcs(pcs):
     """Patch pcs.
 
@@ -10,8 +11,9 @@ def patch_pcs(pcs):
     return pcs (patched module)
     """
     pcs.pp_param_name = pyparsing.Word(
-        pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + "=" +
-        "/" + "?" + "!" + "$" + "%" + "&" + "*" + "+" + "<" + ">" + "("  "((" + ")" + "))")
+        pyparsing.alphanums + "_" + "-" + "@" + "." + ":" + ";" + "\\" + 
+        "=" + "/" + "?" + "!" + "$" + "%" + "&" + "*" + "+" + "<" + ">" + 
+        "("  "((" + ")" + "))")
     pcs.pp_choices = pcs.pp_param_name + \
         pyparsing.Optional(pyparsing.OneOrMore("," + pcs.pp_param_name))
     pcs.pp_cat_param = pcs.pp_param_name + "{" + pcs.pp_choices + "}" + \
@@ -19,7 +21,8 @@ def patch_pcs(pcs):
 
     def _new_read(pcs_string: Iterable[str]) -> ConfigurationSpace:
         """
-        Read in a :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
+        Read in a 
+        :py:class:`~ConfigSpace.configuration_space.ConfigurationSpace`
         definition from a pcs file.
 
 
@@ -76,7 +79,8 @@ def patch_pcs(pcs):
                     c = pp_condition.parseString(line)
                     conditions.append(c)
                 except pyparsing.ParseException as e:
-                    raise NotImplementedError(f"Could not parse condition: {line}") from e
+                    raise NotImplementedError(
+                        f"Could not parse condition: {line}") from e
 
                 continue
             if "}" not in line and "]" not in line:
@@ -125,7 +129,8 @@ def patch_pcs(pcs):
                 name = param_list[0]
                 choices = list(param_list[2:-4:2])
                 default_value = param_list[-2]
-                param = create["categorical"](name=name, choices=choices, default_value=default_value)
+                param = create["categorical"](
+                    name=name, choices=choices, default_value=default_value)
                 cat_ct += 1
             except pyparsing.ParseException:
                 pass
@@ -150,23 +155,27 @@ def patch_pcs(pcs):
                     if tmp_list[1] == "=":
                         # TODO maybe add a check if the hyperparameter is
                         # actually in the configuration space
-                        if isinstance(configuration_space[tmp_list[0]], UniformIntegerHyperparameter):
+                        if isinstance(configuration_space[tmp_list[0]],
+                                      UniformIntegerHyperparameter):
                             vc_val = int(tmp_list[2])
-                        elif isinstance(configuration_space[tmp_list[0]], UniformFloatHyperparameter):
+                        elif isinstance(configuration_space[tmp_list[0]],
+                                        UniformFloatHyperparameter):
                             vc_val = float(tmp_list[2])
                         else:
                             vc_val = tmp_list[2]
                         clause_list.append(
-                            ForbiddenEqualsClause(configuration_space[tmp_list[0]], vc_val),
+                            ForbiddenEqualsClause(
+                                configuration_space[tmp_list[0]], vc_val),
                         )
                     else:
                         raise NotImplementedError()
                     tmp_list = []
-            configuration_space.add_forbidden_clause(ForbiddenAndConjunction(*clause_list))
+            configuration_space.add_forbidden_clause(
+                ForbiddenAndConjunction(*clause_list))
 
         # Now handle conditions
-        # If there are two conditions for one child, these two conditions are an
-        # AND-conjunction of conditions, thus we have to connect them
+        # If there are two conditions for one child, these two conditions 
+        # are an AND-conjunction of conditions, thus we have to connect them
         conditions_per_child: dict = OrderedDict()
         for condition in conditions:
             child_name = condition[0]
@@ -199,8 +208,9 @@ def patch_pcs(pcs):
                     condition = InCondition(child, parent, values=restrictions)
                 condition_objects.append(condition)
 
-            # Now we have all condition objects for this child, so we can build a
-            #  giant AND-conjunction of them (if number of conditions >= 2)!
+            # Now we have all condition objects for this child,
+            # so we can build a giant AND-conjunction of them
+            # (if number of conditions >= 2)!
 
             if len(condition_objects) > 1:
                 and_conjunction = AndConjunction(*condition_objects)

@@ -1,21 +1,15 @@
 """Irace algorithm configuration interface for unified planning."""
 import pandas as pd
 import rpy2.robjects as ro
-from rpy2.robjects.packages import importr
 from rpy2.robjects import pandas2ri
 
 from AC_interface import GenericACInterface
 from utils.pcs_transform import transform_pcs
 
-from ConfigSpace.read_and_write import pcs
 from ConfigSpace.hyperparameters import (
     CategoricalHyperparameter,
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
-)
-from ConfigSpace.conditions import (
-AndConjunction,
-EqualsCondition
 )
 
 
@@ -72,36 +66,47 @@ class IraceInterface(GenericACInterface):
                 search_option = config['fast_downward_search_config'] + '('                    
                 if 'evaluator' in config:
                     if config['evaluator'] in evals:
-                        search_option += '[' + str(config['evaluator']) + '()], '
+                        search_option += \
+                            '[' + str(config['evaluator']) + '()], '
                     else:
                         search_option += str(config['evaluator']) + '(), '
 
                 if 'open' in config:
                     if config['open'] not in open_eval and \
-                        config['open'] not in open_evals:
+                            config['open'] not in open_evals:
                         search_option += '[' + str(config['open']) + '()], '
                     elif config['open'] in open_eval:
-                        search_option += '[' + str(config['open']) + '(' + str(config['open_list_evals']) + ')], '
+                        search_option += \
+                            '[' + str(config['open']) + '(' + \
+                            str(config['open_list_evals']) + ')], '
                     elif config['open'] in open_evals:
-                        search_option += '[' + str(config['open']) + '([]' + str(config['open_list_evals']) + '])], '
+                        search_option += '[' + str(config['open']) + '([]' + \
+                            str(config['open_list_evals']) + '])], '
 
                 if 'evaluator' in config:
                     if config['evaluator'] == 'ehc':
-                        search_option += 'preferred_usage=' + str(config['ehc_preferred_usage']) + ','
+                        search_option += 'preferred_usage=' + \
+                            str(config['ehc_preferred_usage']) + ','
 
                 if 'reopen_closed' in config:
-                    search_option += 'reopen_closed=' + str(config['reopen_closed']) + ','
+                    search_option += 'reopen_closed=' + \
+                        str(config['reopen_closed']) + ','
 
                 if 'randomize_successors' in config:
-                    search_option += 'randomize_successors=' + str(config['randomize_successors']) + ','
+                    search_option += 'randomize_successors=' + \
+                        str(config['randomize_successors']) + ','
 
                 if 'pruning' in config:
                     if config['pruning'] in pruning:
-                        search_option += 'pruning=' + str(config['pruning']) + '(use_sibling_shortcut=' \
-                            + config['atom_centric_stubborn_sets_use_sibling'] + \
-                            ',atom_selection_strategy=' + config['atom_selection_strategy'] + '(), '
+                        search_option += 'pruning=' + \
+                            str(config['pruning']) + '(use_sibling_shortcut=' \
+                            + config[
+                                'atom_centric_stubborn_sets_use_sibling'] + \
+                            ',atom_selection_strategy=' + \
+                            config['atom_selection_strategy'] + '(), '
                     else:
-                        search_option += 'pruning=' + str(config['pruning']) + '(),'
+                        search_option += \
+                            'pruning=' + str(config['pruning']) + '(),'
 
                 search_option += 'cost_type=' + config['cost_type'] + ')'
                 search_option = search_option.replace(" ", "")
@@ -117,8 +122,15 @@ class IraceInterface(GenericACInterface):
         return config
 
     def get_ps_irace(self, param_space):
+        """
+        Get parameter space for irace.
 
-        conditionals = param_space.get_all_conditional_hyperparameters()
+        parameter param_space: ConfigSpace object.
+
+        return default_conf: dict, default values for parameters.
+        return forbiddens: str, forbidden parameter value combinations.
+        """
+
         params = param_space.get_hyperparameters_dict()
 
         names = []
@@ -141,25 +153,38 @@ class IraceInterface(GenericACInterface):
                 choices = ''
                 for pc in param.choices:
                     choices += f'\"{pc}\", '
-                irace_param_space += '\n' + param.name + ' \"\" c ' + f'({choices[:-2]})' + condition
+                irace_param_space += '\n' + param.name + \
+                    ' \"\" c ' + f'({choices[:-2]})' + condition
             elif isinstance(param, UniformFloatHyperparameter):
-                irace_param_space += '\n' + param.name + ' \"\" r ' + f'({param.lower}, {param.upper})' + condition
+                irace_param_space += '\n' + param.name + \
+                    ' \"\" r ' + f'({param.lower}, {param.upper})' + condition
             elif isinstance(param, UniformIntegerHyperparameter):
-                irace_param_space += '\n' + param.name + ' \"\" i ' + f'({param.lower}, {param.upper})' + condition
+                irace_param_space += '\n' + param.name + \
+                    ' \"\" i ' + f'({param.lower}, {param.upper})' + condition
 
         forbidden = ''
         for f in param_space.forbidden_clauses:
             fpair = f.get_descendant_literal_clauses()
-            if isinstance(fpair[0].hyperparameter, CategoricalHyperparameter) and\
-                    isinstance(fpair[1].hyperparameter, CategoricalHyperparameter):
-                forbidden += '\n(' + fpair[0].hyperparameter.name + ' == ' + f'\"{fpair[0].value}\") ' +\
-                    '& (' + fpair[1].hyperparameter.name + ' == ' + f'\"{fpair[1].value}\")'
-            elif isinstance(fpair[0].hyperparameter, CategoricalHyperparameter):
-                forbidden += '\n(' + fpair[0].hyperparameter.name + ' == ' + f'\"{fpair[0].value}\") ' +\
-                    '& (' + fpair[1].hyperparameter.name + ' == ' + f'{fpair[1].value})'
-            elif isinstance(fpair[1].hyperparameter, CategoricalHyperparameter):
-                forbidden += '\n(' + fpair[0].hyperparameter.name + ' == ' + f'{fpair[0].value}) ' +\
-                    '& (' + fpair[1].hyperparameter.name + ' == ' + f'\"{fpair[1].value}\")'
+            if isinstance(
+                fpair[0].hyperparameter, CategoricalHyperparameter) and\
+                    isinstance(
+                        fpair[1].hyperparameter, CategoricalHyperparameter):
+                forbidden += '\n(' + fpair[0].hyperparameter.name + ' == ' + \
+                    f'\"{fpair[0].value}\") ' +\
+                    '& (' + fpair[1].hyperparameter.name + ' == ' + \
+                    f'\"{fpair[1].value}\")'
+            elif isinstance(
+                    fpair[0].hyperparameter, CategoricalHyperparameter):
+                forbidden += '\n(' + fpair[0].hyperparameter.name + ' == ' + \
+                    f'\"{fpair[0].value}\") ' +\
+                    '& (' + fpair[1].hyperparameter.name + ' == ' + \
+                    f'{fpair[1].value})'
+            elif isinstance(
+                    fpair[1].hyperparameter, CategoricalHyperparameter):
+                forbidden += '\n(' + fpair[0].hyperparameter.name + ' == ' + \
+                    f'{fpair[0].value}) ' +\
+                    '& (' + fpair[1].hyperparameter.name + ' == ' + \
+                    f'\"{fpair[1].value}\")'
 
         forbidden += '\n'
 

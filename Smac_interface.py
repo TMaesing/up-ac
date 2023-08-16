@@ -2,6 +2,7 @@
 from AC_interface import GenericACInterface
 from utils.pcs_transform import transform_pcs
 
+
 class SmacInterface(GenericACInterface):
     """Generic Smac interface."""
 
@@ -12,7 +13,6 @@ class SmacInterface(GenericACInterface):
     def transform_conf_from_ac(self, engine, configuration):
         """Transform configuration to up engine format.
 
-        parameter ac_tool: str, name of AC tool in use.
         parameter engines: list of str, names of engines.
         parameter configuration: dict, parameter names with values.
 
@@ -56,36 +56,46 @@ class SmacInterface(GenericACInterface):
                 search_option = config['fast_downward_search_config'] + '('                    
                 if 'evaluator' in config:
                     if config['evaluator'] in evals:
-                        search_option += '[' + str(config['evaluator']) + '()], '
+                        search_option += \
+                            '[' + str(config['evaluator']) + '()], '
                     else:
                         search_option += str(config['evaluator']) + '(), '
 
                 if 'open' in config:
                     if config['open'] not in open_eval and \
-                        config['open'] not in open_evals:
+                            config['open'] not in open_evals:
                         search_option += '[' + str(config['open']) + '()], '
                     elif config['open'] in open_eval:
-                        search_option += '[' + str(config['open']) + '(' + str(config['open_list_evals']) + ')], '
+                        search_option += '[' + str(config['open']) + '(' + \
+                            str(config['open_list_evals']) + ')], '
                     elif config['open'] in open_evals:
-                        search_option += '[' + str(config['open']) + '([]' + str(config['open_list_evals']) + '])], '
+                        search_option += '[' + str(config['open']) + '([]' + \
+                            str(config['open_list_evals']) + '])], '
 
                 if 'evaluator' in config:
                     if config['evaluator'] == 'ehc':
-                        search_option += 'preferred_usage=' + str(config['ehc_preferred_usage']) + ','
+                        search_option += 'preferred_usage=' + \
+                            str(config['ehc_preferred_usage']) + ','
 
                 if 'reopen_closed' in config:
-                    search_option += 'reopen_closed=' + str(config['reopen_closed']) + ','
+                    search_option += 'reopen_closed=' + \
+                        str(config['reopen_closed']) + ','
 
                 if 'randomize_successors' in config:
-                    search_option += 'randomize_successors=' + str(config['randomize_successors']) + ','
+                    search_option += 'randomize_successors=' + \
+                        str(config['randomize_successors']) + ','
 
                 if 'pruning' in config:
                     if config['pruning'] in pruning:
-                        search_option += 'pruning=' + str(config['pruning']) + '(use_sibling_shortcut=' \
-                            + config['atom_centric_stubborn_sets_use_sibling'] + \
-                            ',atom_selection_strategy=' + config['atom_selection_strategy'] + '(), '
+                        search_option += 'pruning=' + \
+                            str(config['pruning']) + '(use_sibling_shortcut=' \
+                            + config[
+                                'atom_centric_stubborn_sets_use_sibling'] + \
+                            ',atom_selection_strategy=' + \
+                            config['atom_selection_strategy'] + '(), '
                     else:
-                        search_option += 'pruning=' + str(config['pruning']) + '(),'
+                        search_option += \
+                            'pruning=' + str(config['pruning']) + '(),'
 
                 search_option += 'cost_type=' + config['cost_type'] + ')'
                 search_option = search_option.replace(" ", "")
@@ -102,4 +112,3 @@ class SmacInterface(GenericACInterface):
                 config = configuration.get_dictionary()
 
         return config
-

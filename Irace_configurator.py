@@ -6,6 +6,7 @@ from configurators import Configurator
 
 import timeit
 
+
 class IraceConfigurator(Configurator):
     """Configurator functions."""
 
@@ -13,24 +14,36 @@ class IraceConfigurator(Configurator):
         """Initialize Irace configurator."""
         Configurator.__init__(self)
 
-    def get_feedback_function(self, ac_tool, gaci, engine, metric, mode, gray_box=False):
+    def get_feedback_function(self, gaci, engine, metric, mode,
+                              gray_box=False):
+        """
+        Generate the function to run engine and get feedback.
+
+        paremer gaci: AC interface object.
+        parameter engine: str, engine name.
+        parameter metric: str, 'runtime' or 'quality'
+        parameter mode: str, type of planning.
+        parameter gray_box: True, if gra box to use
+
+        return planner_feedback: function, planner feedback function.
+        """
         if engine in self.capabilities[metric][mode]:
             self.metric = metric
+
             def planner_feedback(experiment, scenario):
                 start = timeit.default_timer()
-                instance_p = self.scenario['instances'][experiment['id.instance'] - 1]
+                instance_p = \
+                    self.scenario['instances'][experiment['id.instance'] - 1]
                 domain_path = instance_p.rsplit('/', 1)[0]
-                out_file = instance_p.rsplit('/', 1)[1]
                 domain = f'{domain_path}/domain.pddl'
                 pddl_problem = self.reader.parse_problem(f'{domain}',
-                                                    f'{instance_p}')
+                                                         f'{instance_p}')
                 config = dict(experiment['configuration'])
 
                 print(config)
 
                 feedback = \
-                    gaci.run_engine_config(ac_tool,
-                                           config,
+                    gaci.run_engine_config(config,
                                            metric,
                                            engine,
                                            mode,
@@ -72,13 +85,33 @@ class IraceConfigurator(Configurator):
 
             return planner_feedback
         else:
-            print(f'Algorithm Configuration for {metric} of {engine} in {mode} is not supported.')
+            print(f'Algorithm Configuration for {metric} of {engine} in' + 
+                  f' {mode} is not supported.')
             return None
 
-    def set_scenario(self, ac_tool, engine, param_space, gaci, configuration_time=120,
+    def set_scenario(self, ac_tool, engine, param_space, gaci,
+                     configuration_time=120,
                      n_trials=400, min_budget=1, max_budget=3, crash_cost=0,
                      planner_timelimit=30, n_workers=1, instances=[],
-                     instance_features=None, metric='runtime', popSize=128, evlaLimit=2147483647):
+                     instance_features=None, metric='runtime'):
+        """
+        Set up algorithm configuration scenario.
+
+        parameter ac_tool: str, which configuration tol.
+        parameter engine: str, which engine.
+        parameter param_space: ConfigSpace object.
+        parameter gaci: AC interface object.
+        parameter configuration_time: int, overall configuration time budget.
+        parameter n_trials: int, max number of engine evaluations.
+        parameter min_budget: int, min number of instances to use.
+        parameter max_budget: int, max number of instances to use.
+        parameter crash_cost: int, which cost to use if engine fails.
+        parameter planner_timelimit: int, max runtime per evaluation.
+        parameter n_workers: int, no. of cores to utilize.
+        parameter instances: list, problem instance paths.
+        parameter instance_features: dict, inst names and lists of features.
+        parameter metric: str, optimization metric.
+        """
         if not instances:
             instances = self.train_set
         self.crash_cost = crash_cost
@@ -90,19 +123,23 @@ class IraceConfigurator(Configurator):
         elif metric == 'runtime':
             test_type = 't-test'
             capping = True
-        # See https://mlopez-ibanez.github.io/irace/reference/defaultScenario.html
+        # https://mlopez-ibanez.github.io/irace/reference/defaultScenario.html
         if forbiddens:
             scenario = dict(
-                maxTime = configuration_time, # We want to optimize for <configuration_time> seconds
-                instances = instances, # List of training instances
-                debugLevel = 3, 
-                digits = 10, # number of decimal places to be considered for the real parameters
-                parallel=n_workers, # Number of parallel runs
-                forbiddenFile = "forbidden.txt",
-                logFile = "",
+                # We want to optimize for <configuration_time> seconds
+                maxTime=configuration_time,  
+                instances=instances,
+                # List of training instances
+                debugLevel=3, 
+                # number of decimal places to be considered for real parameters
+                digits=10, 
+                # Number of parallel runs
+                parallel=n_workers, 
+                forbiddenFile="forbidden.txt",
+                logFile="",
                 initConfigurations=default_conf,
                 nbConfigurations=8,
-                deterministic = True,
+                deterministic=True,
                 testType=test_type,
                 capping=capping,
                 boundMax=planner_timelimit,
@@ -110,15 +147,19 @@ class IraceConfigurator(Configurator):
             )
         else:
             scenario = dict(
-                maxTime = configuration_time, # We want to optimize for <configuration_time> seconds
-                instances = instances, # List of training instances
-                debugLevel = 3, 
-                digits = 10, # number of decimal places to be considered for the real parameters
-                parallel=n_workers, # Number of parallel runs
-                logFile = "",
+                # We want to optimize for <configuration_time> seconds
+                maxTime=configuration_time, 
+                # List of training instances
+                instances=instances, 
+                debugLevel=3, 
+                # number of decimal places to be considered for real parameters
+                digits=10, 
+                # Number of parallel runs
+                parallel=n_workers, 
+                logFile="",
                 initConfigurations=default_conf,
                 nbConfigurations=8,
-                deterministic = True,
+                deterministic=True,
                 testType=test_type,
                 capping=capping,
                 boundMax=planner_timelimit,
@@ -132,18 +173,25 @@ class IraceConfigurator(Configurator):
         self.scenario = scenario
 
     def optimize(self, ac_tool, feedback_function=None, gray_box=False):
+        """
+        Run the algrithm configuration.
+
+        parameter ac_tool: str, which AC tool.
+        parameter feedback_function: function to run engine and get feedback.
+        parameter gray_box: True, if gray box usage.
+        """
         if feedback_function is not None:
 
             print('\nStarting Parameter optimization\n')
             ac = irace(self.scenario,
-                self.irace_param_space,
-                feedback_function
-                )
+                       self.irace_param_space,
+                       feedback_function)
             self.incumbent = ac.run()
 
             self.incumbent = self.incumbent.to_dict(orient='records')[0]
 
-            print(f'\nBest Configuration found by {ac_tool} is:\n', self.incumbent)
+            print(f'\nBest Configuration found by {ac_tool} is:\n',
+                  self.incumbent)
 
             return self.incumbent, None
         else:
