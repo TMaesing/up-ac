@@ -11,6 +11,11 @@ from ConfigSpace.hyperparameters import (
     UniformFloatHyperparameter,
     UniformIntegerHyperparameter,
 )
+from ConfigSpace.conditions import (
+    InCondition,
+    AndConjunction,
+    EqualsCondition,
+)
 
 
 class IraceInterface(GenericACInterface):
@@ -131,7 +136,54 @@ class IraceInterface(GenericACInterface):
         return forbiddens: str, forbidden parameter value combinations.
         """
 
+        def set_conditional(c, parent, cond_params):
+            """
+            Set conditions as strings for irace parameter space.
+
+            parameter c: ConfigSpace.conditions, condition.
+            parameter parent: ConfigSpace Parameter.
+            parameter cond_params: dict, has conditions as strings.
+
+            return cond_params: dict, has conditions as strings.
+            """
+            if isinstance(c, InCondition):
+                if isinstance(parent, CategoricalHyperparameter):
+                    cond_params[c.child.name] = \
+                        f' | {parent.name} %in% c({str(c.values)[1:-1]})'
+                elif isinstance(parent, UniformFloatHyperparameter):
+                    cond_params[c.child.name] = \
+                        f' | {parent.name} %in% r({str(c.values)[1:-1]})'
+                elif isinstance(parent, UniformIntegerHyperparameter):
+                    cond_params[c.child.name] = \
+                        f' | {parent.name} %in% i({str(c.values)[1:-1]})'
+            elif isinstance(c, EqualsCondition):
+                if isinstance(parent, CategoricalHyperparameter):
+                    cond_params[c.child.name] = \
+                        f' | {parent.name} == "{c.value}"'
+                elif isinstance(parent, UniformFloatHyperparameter):
+                    cond_params[c.child.name] = \
+                        f' | {parent.name} == {c.value}'
+                elif isinstance(parent, UniformIntegerHyperparameter):
+                    cond_params[c.child.name] = \
+                        f' | {parent.name} == {c.value})'
+            return cond_params
+
         params = param_space.get_hyperparameters_dict()
+        conditions = param_space.get_conditions()
+        cond_params = {}
+        for c in conditions:
+            parent = c.get_parents()
+            parent = parent[0]
+            if isinstance(c, AndConjunction):
+                cond_params = set_conditional(c, parent, cond_params)
+                for cc in c.components[1:]:
+                    parent = cc.get_parents()
+                    parent = parent[0]
+                    and_cond = set_conditional(cc, parent, cond_params)
+                    cond_params[cc.child.name] += \
+                        ' &&' + and_cond[cc.child.name][2:]
+            else:
+                cond_params = set_conditional(c, parent, cond_params)
 
         names = []
         values = []
@@ -148,7 +200,10 @@ class IraceInterface(GenericACInterface):
         irace_param_space = ''
 
         for p, param in params.items():
-            condition = ''
+            if param.name in cond_params:
+                condition = cond_params[param.name]
+            else:
+                condition = ''
             if isinstance(param, CategoricalHyperparameter):
                 choices = ''
                 for pc in param.choices:
