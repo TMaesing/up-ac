@@ -68,4 +68,5 @@ jobs:
 
     - name: Test with unittest
       run: |
-        python -m unittest tests/unittests.py tests/test_irace_enhsp
+        python -m unittest tests/unittests.py
+        python -m unittest tests/test_irace_enhsp.py
