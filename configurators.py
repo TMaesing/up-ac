@@ -75,7 +75,7 @@ class Configurator():
         """
         Generate the function to run engine and get feedback.
 
-        paremer gaci: AC interface object.
+        parameter gaci: AC interface object.
         parameter engine: str, engine name.
         parameter metric: str, 'runtime' or 'quality'
         parameter mode: str, type of planning.
@@ -116,7 +116,7 @@ class Configurator():
         parameter instances: list, problem instance paths.
         parameter instance_features: dict, inst names and lists of features.
         parameter metric: str, optimization metric.
-        parameter popSize: int, populaton size of configs per generation (OAT).
+        parameter popSize: int, population size of configs per generation (OAT).
         parameter evlaLimit: int, max no. of evaluations (OAT).
         """
 
@@ -126,7 +126,7 @@ class Configurator():
 
     def optimize(self, ac_tool, feedback_function=None, gray_box=False):
         """
-        Run the algrithm configuration.
+        Run the algorithm configuration.
 
         parameter ac_tool: str, which AC tool.
         parameter feedback_function: function to run engine and get feedback.
