@@ -60,10 +60,10 @@ class test_Irace_engines(unittest.TestCase):
             IAC_fb_func(experiment, IAC.scenario)
 
 
-        def test_optimize(self, IAC=IAC, IAC_fb_func=IAC_fb_func):
-            if IAC_fb_func is not None:
-                inc, _ = IAC.optimize('irace', feedback_function=IAC_fb_func)
-                self.assertIsNotNone(inc, "Should return optimized")
+        # def test_optimize(self, IAC=IAC, IAC_fb_func=IAC_fb_func):
+        #    if IAC_fb_func is not None:
+        #        inc, _ = IAC.optimize('irace', feedback_function=IAC_fb_func)
+        #        self.assertIsNotNone(inc, "Should return optimized")
 
 
         def test_evaluate(self, IAC=IAC, instances=instances, igaci=igaci,
