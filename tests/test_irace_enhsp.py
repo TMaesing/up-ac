@@ -49,6 +49,7 @@ class test_Irace_engines(unittest.TestCase):
         def test_fb_func(self, IAC_fb_func=IAC_fb_func):
             self.assertIsNotNone(IAC_fb_func,"Operational mode not supported")
 
+
         def test_enhsp(self, IAC=IAC,
                        IAC_fb_func=IAC_fb_func, igaci=igaci,
                        metric=metric, engine=engine, instances=instances):
@@ -58,10 +59,12 @@ class test_Irace_engines(unittest.TestCase):
             experiment = {'id.instance': 1, 'configuration': default_config}
             IAC_fb_func(experiment, IAC.scenario)
 
-        # def test_optimize(self, IAC=IAC):
-            # TODO: let optimize() run through with less time?
-            # inc, _ = IAC.optimize('irace', feedback_function=IAC_fb_func)
-            # self.assertIsNotNone(inc, "No Feedback function handed to optimize()")
+
+        def test_optimize(self, IAC=IAC, IAC_fb_func=IAC_fb_func):
+            if IAC_fb_func is not None:
+                inc, _ = IAC.optimize('irace', feedback_function=IAC_fb_func)
+                self.assertIsNotNone(inc, "Should return optimized")
+
 
         def test_evaluate(self, IAC=IAC, instances=instances, igaci=igaci,
                           engine=engine, metric=metric):
@@ -74,7 +77,9 @@ class test_Irace_engines(unittest.TestCase):
                 self.assertIsNotNone(IAC.evaluate('irace', metric, engine[0], 'OneshotPlanner',
                                                       IAC.incumbent, igaci), "Should have evaluated")
 
-
+class test_other_metric(unittest.TestCase):
+    def test_first(self):
+        self.assertTrue(True)
 
 up.shortcuts.get_environment().credits_stream = None
 
