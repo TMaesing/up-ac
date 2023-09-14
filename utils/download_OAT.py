@@ -2,6 +2,7 @@ from sys import platform
 import wget
 import zipfile
 import os
+import shutil
 
 
 def get_OAT():
@@ -47,4 +48,4 @@ def delete_OAT():
     path = os.getcwd().rsplit('up-ac', 1)[0]
     path += 'up-ac'
     if os.path.isdir(f'{path}/OAT/'):
-        os.rmdir(f'{path}/OAT/')
+        shutil.rmtree(f'{path}/OAT/')

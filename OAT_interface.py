@@ -106,7 +106,10 @@ class OATInterface(GenericACInterface):
                         search_option += 'pruning=' + \
                             str(config['pruning']) + '(),'
 
-                search_option += 'cost_type=' + config['cost_type'] + ')'
+                if 'cost_type' in config:
+                    search_option += 'cost_type=' + config['cost_type'] + ')'
+                else:
+                    search_option += ')'
                 search_option = search_option.replace(" ", "")
 
                 if engine == 'fast-downward':

@@ -9,6 +9,9 @@ from queue import Queue
 import subprocess
 import dill 
 import shutil
+from unified_planning.exceptions import UPProblemDefinitionError
+from pebble import concurrent
+from concurrent.futures import TimeoutError
 
 
 class OATConfigurator(Configurator):
@@ -23,7 +26,7 @@ class OATConfigurator(Configurator):
         path = self.scenario['path_to_OAT']
         read_param = False
         config = {}
-        with open(f'{path}/tunerLog.txt', 'r') as f:
+        with open(f'{path}tunerLog.txt', 'r') as f:
             for line in f:
                 line = line.split(' ')
                 for i, l in enumerate(line):
@@ -72,8 +75,8 @@ class OATConfigurator(Configurator):
             def planner_feedback(config, instance, reader):
 
                 self.reader = reader 
-                if metric == 'runtime':
-                    start = timeit.default_timer()
+                
+                start = timeit.default_timer()
                 instance_p = f'{instance}'
                 domain_path = instance_p.rsplit('/', 1)[0]
                 domain = f'{domain_path}/domain.pddl'
@@ -119,18 +122,60 @@ class OATConfigurator(Configurator):
                                                engine,
                                                mode,
                                                pddl_problem)
+                                               
+                    try:
+                        @concurrent.process(timeout=self.scenario['timelimit'])
+                        def solve(config, metric, engine,
+                                  mode, pddl_problem):
+                            feedback = \
+                                gaci.run_engine_config(config,
+                                                       metric, engine,
+                                                       mode, pddl_problem)
+
+                            return feedback
+
+                        feedback = solve(config, metric, engine,
+                                         mode, pddl_problem)
+                    
+                        try:
+                            feedback = feedback.result()
+                        except TimeoutError:
+                            if metric == 'runtime':
+                                feedback = self.planner_timelimit
+                            elif metric == 'quality':
+                                feedback = self.crash_cost
+
+                    except (AssertionError, NotImplementedError,
+                            UPProblemDefinitionError):
+                        print('\n** Error in planning engine!')
+                        if metric == 'runtime':
+                            feedback = self.planner_timelimit
+                        elif metric == 'quality':
+                            feedback = self.crash_cost
 
                 if feedback is not None:
-                    # SMAC always minimizes
                     if metric == 'quality':
+                        self.print_feedback(engine, instance_p, feedback)
                         return -feedback
                     elif metric == 'runtime':
+                        if engine in ('tamer', 'pyperplan'):
+                            feedback = timeit.default_timer() - start
+                            self.print_feedback(engine, instance_p, feedback)
+                        else:
+                            feedback = feedback
+                            self.print_feedback(engine, instance_p, feedback)
                         return feedback
                 else:
+                    # Penalizing failed runs
                     if metric == 'runtime':
-                        feedback = timeit.default_timer() - start
+                        # Penalty is max runtime in runtime scenario
+                        feedback = self.scenario['timelimit']
+                        self.print_feedback(engine, instance_p, feedback)
                     else:
+                        # Penalty is defined by user in quality scenario
                         feedback = self.crash_cost
+                        self.print_feedback(engine, instance_p, feedback)
+
                     return feedback
 
             path_to_OAT = 'path_to_OAT'
@@ -143,11 +188,11 @@ class OATConfigurator(Configurator):
 
             return planner_feedback
         else:
-            print(f'Algorithm Configuration for {metric} of {ac_tool} in' + \
+            print(f'Algorithm Configuration for {metric} of {engine} in' + \
                   ' {mode} is not supported.')
             return None
 
-    def set_scenario(self, ac_tool, engine, param_space, gaci,
+    def set_scenario(self, engine, param_space, gaci,
                      configuration_time=120, n_trials=400, min_budget=1,
                      max_budget=3, crash_cost=0, planner_timelimit=30,
                      n_workers=1, instances=[], instance_features=None,
@@ -257,7 +302,7 @@ class OATConfigurator(Configurator):
                                   f'--numGens={max_budget} ' + 
                                   f'--goalGen={min_budget} ' +
                                   f'--instanceNumbers={min_budget}:' +
-                                  '{max_budget} ' +
+                                  f'{max_budget} ' +
                                   f'--evaluationLimit={evalLimit} ' +
                                   f'--popSize={popSize}'],
                                  stdout=subprocess.PIPE, stdin=subprocess.PIPE,

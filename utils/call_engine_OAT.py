@@ -9,6 +9,9 @@ with open(sys.argv[1], 'r') as f:
 
 # Construct parameter dict
 params = {}
+for i, arg in enumerate(sys.argv):
+    sys.argv[i] = arg.replace('{', '').replace('}', '')
+
 for arg in sys.argv[2::2]:
     params[arg[1:]] = sys.argv[sys.argv.index(arg) + 1]
     
@@ -18,7 +21,7 @@ path += 'up-ac'
 sys.path.append(r"{}".format(path))
 
 # Load planner_feedback function
-feedback = dill.load(open(f'{path}OAT/feedback.pkl', 'rb'))
+feedback = dill.load(open(f'{path}/OAT/feedback.pkl', 'rb'))
 feedback = feedback(params, instance, PDDLReader())
 
 # Print feedback for OAT to parse

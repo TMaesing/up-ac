@@ -205,7 +205,9 @@ class Configurator():
                     if f is None:
                         f = planner_timelimit
                     elif f == 'measure':
-                        f = start = timeit.default_timer() - start
+                        f = timeit.default_timer() - start
+                        if f > planner_timelimit:
+                            f = planner_timelimit
 
                 if f is not None and self.metric == 'quality':
                     f = -f

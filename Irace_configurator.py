@@ -1,5 +1,8 @@
 """Functionalities for managing and calling configurators."""
 from irace import irace
+from unified_planning.exceptions import UPProblemDefinitionError
+from pebble import concurrent
+from concurrent.futures import TimeoutError
 
 from AC_interface import *
 from configurators import Configurator
@@ -40,24 +43,50 @@ class IraceConfigurator(Configurator):
                                                          f'{instance_p}')
                 config = dict(experiment['configuration'])
 
-                print(config)
-
+                '''
                 feedback = \
                     gaci.run_engine_config(config,
                                            metric,
                                            engine,
                                            mode,
                                            pddl_problem)
+                '''
+                try:
+                    @concurrent.process(timeout=self.planner_timelimit)
+                    def solve(config, metric, engine,
+                              mode, pddl_problem):
+                        feedback = \
+                            gaci.run_engine_config(config,
+                                                   metric, engine,
+                                                   mode, pddl_problem)
+
+                        return feedback
+
+                    feedback = solve(config, metric, engine,
+                                     mode, pddl_problem)
+                    
+                    try:
+                        feedback = feedback.result()
+                    except TimeoutError:
+                        if metric == 'runtime':
+                            feedback = self.planner_timelimit
+                        elif metric == 'quality':
+                            feedback = self.crash_cost
+
+                except (AssertionError, NotImplementedError,
+                        UPProblemDefinitionError):
+                    print('\n** Error in planning engine!')
+                    if metric == 'runtime':
+                        feedback = self.planner_timelimit
+                    elif metric == 'quality':
+                        feedback = self.crash_cost
 
                 if feedback is not None:
-                    # SMAC always minimizes
                     if metric == 'quality':
                         self.print_feedback(engine, instance_p, feedback)
                         runtime = timeit.default_timer() - start
                         feedback = {'cost': -feedback, 'time': runtime}
                         return feedback
-                    # Solving runtime optimization by passing
-                    # runtime as result, since smac minimizes it
                     elif metric == 'runtime':
                         if engine in ('tamer', 'pyperplan'):
                             feedback = timeit.default_timer() - start
@@ -115,6 +144,7 @@ class IraceConfigurator(Configurator):
         if not instances:
             instances = self.train_set
         self.crash_cost = crash_cost
+        self.planner_timelimit = planner_timelimit
         default_conf, forbiddens = gaci.get_ps_irace(param_space)
 
         if metric == 'quality':

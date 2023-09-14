@@ -1,6 +1,9 @@
 """Functionalities for managing and calling configurators."""
 from smac import Scenario
 from smac import AlgorithmConfigurationFacade
+from unified_planning.exceptions import UPProblemDefinitionError
+from pebble import concurrent
+from concurrent.futures import TimeoutError
 
 from AC_interface import *
 from configurators import Configurator
@@ -35,20 +38,52 @@ class SmacConfigurator(Configurator):
             self.metric = metric
 
             def planner_feedback(config, instance, seed=0):
-                if metric == 'runtime':
-                    start = timeit.default_timer()
+                start = timeit.default_timer()
                 print(instance)
                 instance_p = f'{instance}'
                 domain_path = instance_p.rsplit('/', 1)[0]
                 domain = f'{domain_path}/domain.pddl'
                 pddl_problem = self.reader.parse_problem(f'{domain}',
                                                          f'{instance_p}')
+
+                '''
                 feedback = \
                     gaci.run_engine_config(config,
                                            metric,
                                            engine,
                                            mode,
                                            pddl_problem)
+                '''
+
+                try:
+                    @concurrent.process(timeout=self.planner_timelimit)
+                    def solve(config, metric, engine,
+                              mode, pddl_problem):
+                        feedback = \
+                            gaci.run_engine_config(config,
+                                                   metric, engine,
+                                                   mode, pddl_problem)
+
+                        return feedback
+
+                    feedback = solve(config, metric, engine,
+                                     mode, pddl_problem)
+                    
+                    try:
+                        feedback = feedback.result()
+                    except TimeoutError:
+                        if metric == 'runtime':
+                            feedback = self.planner_timelimit
+                        elif metric == 'quality':
+                            feedback = self.crash_cost
+
+                except (AssertionError, NotImplementedError,
+                        UPProblemDefinitionError):
+                    print('\n** Error in planning engine!')
+                    if metric == 'runtime':
+                        feedback = self.planner_timelimit
+                    elif metric == 'quality':
+                        feedback = self.crash_cost
 
                 if feedback is not None:
                     # SMAC always minimizes
@@ -110,6 +145,7 @@ class SmacConfigurator(Configurator):
         if not instances:
             instances = self.train_set
         self.crash_cost = crash_cost
+        self.planner_timelimit = planner_timelimit
         self.engine = engine
         self.gaci = gaci
         scenario = Scenario(
