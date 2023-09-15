@@ -68,6 +68,7 @@ jobs:
 
     - name: Test with unittest
       run: |
+        cd up_ac
         python -m unittest up_ac/tests/unittests.py
         python -m unittest up_ac/tests/test_default_engine_configs.py
         python -m unittest up_ac/tests/test_allowed_combinations.py
