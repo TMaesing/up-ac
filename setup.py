@@ -3,8 +3,8 @@ from setuptools import setup, find_packages  # type: ignore
 long_description = "Algorithm Configuration for the unified planning framework."
 
 setup(
-    name="up-ac",
-    version=up-ac.__version__,
+    name="upac",
+    version=upac.__version__,
     description="Unified Planning Framework Algorthm Configuration",
     long_description=long_description,
     long_description_content_type="text/markdown",
