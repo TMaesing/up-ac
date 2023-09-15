@@ -5,11 +5,11 @@ import sys
 import os
 
 # make sure test can be run from anywhere
-path = os.getcwd().rsplit('up-ac', 1)[0]
-path += 'up-ac'
+path = os.getcwd().rsplit('up_ac', 1)[0]
+path += 'up_ac'
 if not os.path.isfile(sys.path[0] + '/configurators.py') and \
-        'up-ac' in sys.path[0]:
-    sys.path.insert(0, sys.path[0].rsplit('up-ac', 1)[0] + 'up-ac')
+        'up_ac' in sys.path[0]:
+    sys.path.insert(0, sys.path[0].rsplit('up_ac', 1)[0] + 'up_ac')
 
 from Smac_configurator import SmacConfigurator
 from Smac_interface import SmacInterface
@@ -17,12 +17,12 @@ from Smac_interface import SmacInterface
 # pddl instance to test with
 instances = [f'{path}/test_problems/depot/problem.pddl',
              f'{path}/test_problems/counters/problem.pddl',
-             f'{path}/test_problems/citycar/problem.pddl',
+             f'{path}/test_problems/matchcellar/problem.pddl',
              f'{path}/test_problems/sailing/problem.pddl',
-             f'{path}/test_problems/safe_road/problem.pddl']
+             f'{path}/test_problems/visit_precedence/problem.pddl']
 
 # test setting
-engine = ['enhsp']
+engine = ['tamer']
 
 metrics = ['quality', 'runtime']
 
@@ -60,9 +60,9 @@ if __name__ == '__main__':
             continue
         SAC.set_scenario('SMAC', engine[0],
                          sgaci.engine_param_spaces[engine[0]],
-                         sgaci, configuration_time=30, n_trials=50,
-                         min_budget=2, max_budget=5, crash_cost=0,
-                         planner_timelimit=5, n_workers=1,
+                         sgaci, configuration_time=30, n_trials=30,
+                         min_budget=3, max_budget=5, crash_cost=0,
+                         planner_timelimit=5, n_workers=3,
                          instance_features=SAC.instance_features)
 
         # Test feedback function

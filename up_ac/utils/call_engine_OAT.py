@@ -16,8 +16,8 @@ for arg in sys.argv[2::2]:
     params[arg[1:]] = sys.argv[sys.argv.index(arg) + 1]
     
 # Make sure modules are accesible
-path = os.getcwd().rsplit('up-ac', 2)[0]
-path += 'up-ac'
+path = os.getcwd().rsplit('up_ac', 2)[0]
+path += 'up_ac'
 sys.path.append(r"{}".format(path))
 
 # Load planner_feedback function

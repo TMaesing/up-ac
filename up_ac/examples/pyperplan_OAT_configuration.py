@@ -3,26 +3,25 @@ import sys
 import os
 
 # make sure test can be run from anywhere
-path = os.getcwd().rsplit('up-ac', 1)[0]
-path += 'up-ac'
+path = os.getcwd().rsplit('up_ac', 1)[0]
+path += 'up_ac'
 if not os.path.isfile(sys.path[0] + '/configurators.py') and \
-        'up-ac' in sys.path[0]:
-    sys.path.insert(0, sys.path[0].rsplit('up-ac', 1)[0] + 'up-ac')
+        'up_ac' in sys.path[0]:
+    sys.path.insert(0, sys.path[0].rsplit('up_ac', 1)[0] + 'up_ac')
 
 from OAT_configurator import OATConfigurator
 from OAT_interface import OATInterface
 
 # pddl instance to test with
 instances = [f'{path}/test_problems/depot/problem.pddl',
-             f'{path}/test_problems/counters/problem.pddl',
-             f'{path}/test_problems/matchcellar/problem.pddl',
+             f'{path}/test_problems/citycar/problem.pddl',
              f'{path}/test_problems/sailing/problem.pddl',
              f'{path}/test_problems/visit_precedence/problem.pddl']
 
 print(instances)
 
 # test setting
-engine = ['tamer']
+engine = ['pyperplan']
 
 metrics = ['quality', 'runtime']
 
@@ -44,7 +43,7 @@ if __name__ == '__main__':
                          crash_cost=0, planner_timelimit=15, n_workers=3,
                          instance_features=None, popSize=5, metric=metric,
                          evlaLimit=1)
-        OAC_fb_func = OAC.get_feedback_function(ogaci, engine[0],
+        OAC_fb_func = OAC.get_feedback_function('OAT', ogaci, engine[0],
                                                 metric, 'OneshotPlanner')
         # run algorithm configuration
         incumbent, _ = OAC.optimize('OAT', feedback_function=OAC_fb_func)

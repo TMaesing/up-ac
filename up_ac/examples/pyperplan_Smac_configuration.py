@@ -5,11 +5,11 @@ import sys
 import os
 
 # make sure test can be run from anywhere
-path = os.getcwd().rsplit('up-ac', 1)[0]
-path += 'up-ac'
+path = os.getcwd().rsplit('up_ac', 1)[0]
+path += 'up_ac'
 if not os.path.isfile(sys.path[0] + '/configurators.py') and \
-        'up-ac' in sys.path[0]:
-    sys.path.insert(0, sys.path[0].rsplit('up-ac', 1)[0] + 'up-ac')
+        'up_ac' in sys.path[0]:
+    sys.path.insert(0, sys.path[0].rsplit('up_ac', 1)[0] + 'up_ac')
 
 from Smac_configurator import SmacConfigurator
 from Smac_interface import SmacInterface

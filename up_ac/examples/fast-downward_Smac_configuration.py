@@ -5,24 +5,22 @@ import sys
 import os
 
 # make sure test can be run from anywhere
-path = os.getcwd().rsplit('up-ac', 1)[0]
-path += 'up-ac'
+path = os.getcwd().rsplit('up_ac', 1)[0]
+path += 'up_ac'
 if not os.path.isfile(sys.path[0] + '/configurators.py') and \
-        'up-ac' in sys.path[0]:
-    sys.path.insert(0, sys.path[0].rsplit('up-ac', 1)[0] + 'up-ac')
+        'up_ac' in sys.path[0]:
+    sys.path.insert(0, sys.path[0].rsplit('up_ac', 1)[0] + 'up_ac')
 
 from Smac_configurator import SmacConfigurator
 from Smac_interface import SmacInterface
 
 # pddl instance to test with
-instances = [f'{path}/test_problems/visit_precedence/problem.pddl',
-             f'{path}/test_problems/counters/problem.pddl',
+instances = [f'{path}/test_problems/miconic/problem.pddl',
              f'{path}/test_problems/depot/problem.pddl',
-             f'{path}/test_problems/miconic/problem.pddl',
-             f'{path}/test_problems/matchcellar/problem.pddl']
+             f'{path}/test_problems/safe_road/problem.pddl']
 
 # test setting
-engine = ['lpg']
+engine = ['fast-downward']
 
 metrics = ['quality', 'runtime']
 
@@ -61,20 +59,20 @@ if __name__ == '__main__':
         SAC.set_scenario('SMAC', engine[0],
                          sgaci.engine_param_spaces[engine[0]],
                          sgaci, configuration_time=30, n_trials=30,
-                         min_budget=2, max_budget=5, crash_cost=0,
-                         planner_timelimit=15, n_workers=3,
+                         min_budget=1, max_budget=3, crash_cost=0,
+                         planner_timelimit=5, n_workers=3,
                          instance_features=SAC.instance_features)
 
         # Test feedback function
         default_config = \
             sgaci.engine_param_spaces[engine[0]].get_default_configuration()
-        SAC_fb_func(default_config, instances[3])
+        SAC_fb_func(default_config, instances[0])
 
         # run algorithm configuration
         incumbent, _ = SAC.optimize('SMAC', feedback_function=SAC_fb_func)
 
         # check configurations performance
         perf = SAC.evaluate('SMAC', metric, engine[0], 'OneshotPlanner',
-                            SAC.incumbent, sgaci, planner_timelimit=15)
+                            SAC.incumbent, sgaci, planner_timelimit=5)
         # save best configuration found
         SAC.save_config('.', SAC.incumbent, sgaci, engine[0])
