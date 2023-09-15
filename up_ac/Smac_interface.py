@@ -1,6 +1,6 @@
 """Smac algorithm configuration interface for unified planning."""
-from AC_interface import GenericACInterface
-from utils.pcs_transform import transform_pcs
+from up_ac.AC_interface import GenericACInterface
+from up_ac.utils.pcs_transform import transform_pcs
 
 
 class SmacInterface(GenericACInterface):

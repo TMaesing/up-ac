@@ -5,8 +5,8 @@ from unified_planning.exceptions import UPProblemDefinitionError
 from pebble import concurrent
 from concurrent.futures import TimeoutError
 
-from AC_interface import *
-from configurators import Configurator
+from up_ac.AC_interface import *
+from up_ac.configurators import Configurator
 
 import timeit
 

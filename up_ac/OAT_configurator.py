@@ -1,6 +1,6 @@
 """Functionalities for managing and calling configurators."""
-from AC_interface import *
-from configurators import Configurator
+from up_ac.AC_interface import *
+from up_ac.configurators import Configurator
 
 import timeit
 import os

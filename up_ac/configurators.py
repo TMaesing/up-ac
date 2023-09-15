@@ -2,7 +2,7 @@
 from unified_planning.io import PDDLReader
 from unified_planning.exceptions import UPProblemDefinitionError
 
-from AC_interface import *
+from up_ac.AC_interface import *
 
 import json
 import timeit

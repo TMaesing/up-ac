@@ -2,8 +2,8 @@
 import unified_planning
 from unified_planning.environment import get_environment
 from unified_planning.shortcuts import *
-from utils.ac_feedback import qaul_feedback, runtime_feedback
-from utils.patches import patch_pcs
+from up_ac.utils.ac_feedback import qaul_feedback, runtime_feedback
+from up_ac.utils.patches import patch_pcs
 from tarski.io import PDDLReader as treader
 
 from ConfigSpace.read_and_write import pcs
