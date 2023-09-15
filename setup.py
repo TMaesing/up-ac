@@ -4,7 +4,7 @@ long_description = "Algorithm Configuration for the unified planning framework."
 
 setup(
     name="upac",
-    version=upac.__version__,
+    version="0.0.1",
     description="Unified Planning Framework Algorthm Configuration",
     long_description=long_description,
     long_description_content_type="text/markdown",
