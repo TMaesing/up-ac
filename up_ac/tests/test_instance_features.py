@@ -3,7 +3,7 @@ import sys
 import os
 
 path = os.getcwd().rsplit('up_ac', 2)[0]
-path += 'up_ac'
+path += '/up_ac'
 
 if not os.path.isfile(sys.path[0] + '/configurators.py') \
         and 'up_ac' in sys.path[0]:

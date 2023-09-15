@@ -8,7 +8,7 @@ import shutil
 def get_OAT():
     # Set path to up-ac
     path = os.getcwd().rsplit('up_ac', 1)[0]
-    path += 'up_ac'
+    path += '/up_ac'
 
     # Path to OAT directory
     save_as = f'{path}/OAT/OAT.zip'
@@ -46,6 +46,7 @@ def get_OAT():
 def delete_OAT():
     # Set path to up-ac
     path = os.getcwd().rsplit('up-ac', 1)[0]
-    path += 'up-ac'
+    path += 'up-ac/up_ac'
+    print('PATH', path)
     if os.path.isdir(f'{path}/OAT/'):
         shutil.rmtree(f'{path}/OAT/')

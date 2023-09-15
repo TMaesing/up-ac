@@ -9,10 +9,10 @@ import unittest
 
 # make sure test can be run from anywhere
 path = os.getcwd().rsplit('up_ac', 1)[0]
-path += 'up_ac'
+path += '/up_ac'
 if not os.path.isfile(sys.path[0] + '/configurators.py') and \
         'up_ac' in sys.path[0]:
-    sys.path.insert(0, sys.path[0].rsplit('up_ac', 1)[0] + 'up_ac')
+    sys.path.insert(0, sys.path[0].rsplit('up_ac', 1)[0] + '/up_ac')
     
 from up_ac.Irace_interface import IraceInterface
 from up_ac.Irace_configurator import IraceConfigurator
@@ -20,6 +20,7 @@ from up_ac.OAT_configurator import OATConfigurator
 from up_ac.OAT_interface import OATInterface
 from up_ac.Smac_configurator import SmacConfigurator
 from up_ac.Smac_interface import SmacInterface
+from up_ac.utils.download_OAT import get_OAT, delete_OAT
 
 with open(f"{path}/utils/download_OAT.py") as f:
     exec(f.read())

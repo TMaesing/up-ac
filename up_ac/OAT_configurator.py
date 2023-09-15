@@ -224,7 +224,7 @@ class OATConfigurator(Configurator):
         param_file = gaci.get_ps_oat(param_space)
 
         path = os.getcwd().rsplit('up-ac', 2)[0]
-        path += 'up-ac'
+        path += 'up-ac/up_ac'
 
         path_to_xml = f'{path}/OAT/{engine}parameterTree.xml'
 
