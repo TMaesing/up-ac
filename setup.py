@@ -1,14 +1,11 @@
 from setuptools import setup, find_packages  # type: ignore
 
-import unified_planning
-
-
 long_description = "Algorithm Configuration for the unified planning framework."
 
 setup(
-    name="unified_planning",
-    version=unified_planning.__version__,
-    description="Unified Planning Framework",
+    name="up-ac",
+    version=up-ac.__version__,
+    description="Unified Planning Framework Algorthm Configuration",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="AIPlan4EU Project",
