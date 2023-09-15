@@ -10,7 +10,7 @@ if not os.path.isfile(sys.path[0] + '/configurators.py') and \
         'up_ac' in sys.path[0]:
     sys.path.insert(0, sys.path[0].rsplit('up_ac', 2)[0] + 'up_ac')
 
-from AC_interface import GenericACInterface
+from up_ac.AC_interface import GenericACInterface
 
 gaci = GenericACInterface()
 

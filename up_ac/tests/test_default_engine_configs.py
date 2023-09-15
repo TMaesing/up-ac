@@ -15,8 +15,8 @@ if not os.path.isfile(sys.path[0] + '/configurators.py') and \
     sys.path.insert(0, sys.path[0].rsplit('up_ac', 1)[0] + '/up_ac')
 
     
-from Irace_interface import IraceInterface
-from Irace_configurator import IraceConfigurator
+from up_ac.Irace_interface import IraceInterface
+from up_ac.Irace_configurator import IraceConfigurator
 
 class TestDefaultConfigs(unittest.TestCase):
 
