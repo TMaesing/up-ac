@@ -35,7 +35,7 @@ class TestIraceEnhspOnQuality(unittest.TestCase):
     IAC.set_training_instance_set(instances)
     IAC.set_test_instance_set(instances)
 
-    IAC.set_scenario('irace', engine[0],
+    IAC.set_scenario(engine[0],
                      igaci.engine_param_spaces[engine[0]], igaci,
                      configuration_time=300, n_trials=30,
                      crash_cost=0, min_budget=3,
@@ -60,11 +60,11 @@ class TestIraceEnhspOnQuality(unittest.TestCase):
                       engine=engine, metric=metric):
 
         if (IAC.incumbent is None) or (len(instances) == 0):
-            self.assertIsNone(IAC.evaluate('irace', metric, engine[0], 'OneshotPlanner',
+            self.assertIsNone(IAC.evaluate(metric, engine[0], 'OneshotPlanner',
                                            IAC.incumbent, igaci),
                               "No incumbent and/or no instances should return None")
         else:
-            self.assertIsNotNone(IAC.evaluate('irace', metric, engine[0], 'OneshotPlanner',
+            self.assertIsNotNone(IAC.evaluate(metric, engine[0], 'OneshotPlanner',
                                               IAC.incumbent, igaci), "Should have evaluated")
 
 
@@ -87,7 +87,7 @@ class TestIraceEnhspOnRuntime(unittest.TestCase):
     IAC.set_training_instance_set(instances)
     IAC.set_test_instance_set(instances)
 
-    IAC.set_scenario('irace', engine[0],
+    IAC.set_scenario(engine[0],
                      igaci.engine_param_spaces[engine[0]], igaci,
                      configuration_time=300, n_trials=30,
                      crash_cost=0, min_budget=3,
@@ -112,11 +112,11 @@ class TestIraceEnhspOnRuntime(unittest.TestCase):
                       engine=engine, metric=metric):
 
         if (IAC.incumbent is None) or (len(instances) == 0):
-            self.assertIsNone(IAC.evaluate('irace', metric, engine[0], 'OneshotPlanner',
+            self.assertIsNone(IAC.evaluate(metric, engine[0], 'OneshotPlanner',
                                            IAC.incumbent, igaci),
                               "No incumbent and/or no instances should return None")
         else:
-            self.assertIsNotNone(IAC.evaluate('irace', metric, engine[0], 'OneshotPlanner',
+            self.assertIsNotNone(IAC.evaluate(metric, engine[0], 'OneshotPlanner',
                                               IAC.incumbent, igaci), "Should have evaluated")
 
 

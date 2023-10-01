@@ -48,7 +48,7 @@ class TestSmacFastDownwardOnQuality(unittest.TestCase):
     SAC_fb_func = SAC.get_feedback_function(sgaci, engine[0],
                                             metric, 'OneshotPlanner')
 
-    SAC.set_scenario('SMAC', engine[0],
+    SAC.set_scenario(engine[0],
                      sgaci.engine_param_spaces[engine[0]],
                      sgaci, configuration_time=30, n_trials=30,
                      min_budget=1, max_budget=3, crash_cost=0,
@@ -67,13 +67,13 @@ class TestSmacFastDownwardOnQuality(unittest.TestCase):
 
     def test_optimize(self, SAC=SAC, SAC_fb_func=SAC_fb_func,
                       default_config=default_config):
-        incumbent, _ = SAC.optimize('SMAC', feedback_function=SAC_fb_func)
+        incumbent, _ = SAC.optimize(feedback_function=SAC_fb_func)
         self.assertIsInstance(incumbent, dict)
         self.assertNotEqual(incumbent, default_config)
 
     def test_evaluate(self, metric=metric, engine=engine,
                       SAC=SAC, sgaci=sgaci):
-        perf = SAC.evaluate('SMAC', metric, engine[0], 'OneshotPlanner',
+        perf = SAC.evaluate(metric, engine[0], 'OneshotPlanner',
                             SAC.incumbent, sgaci, planner_timelimit=5)
         self.assertIsNone(perf)
 
@@ -111,7 +111,7 @@ class TestSmacFastDownwardOnRuntime(unittest.TestCase):
     SAC_fb_func = SAC.get_feedback_function(sgaci, engine[0],
                                             metric, 'OneshotPlanner')
 
-    SAC.set_scenario('SMAC', engine[0],
+    SAC.set_scenario(engine[0],
                      sgaci.engine_param_spaces[engine[0]],
                      sgaci, configuration_time=30, n_trials=30,
                      min_budget=1, max_budget=3, crash_cost=0,
@@ -130,13 +130,13 @@ class TestSmacFastDownwardOnRuntime(unittest.TestCase):
 
     def test_optimize(self, SAC=SAC, SAC_fb_func=SAC_fb_func,
                       default_config=default_config):
-        incumbent, _ = SAC.optimize('SMAC', feedback_function=SAC_fb_func)
+        incumbent, _ = SAC.optimize(feedback_function=SAC_fb_func)
         self.assertIsInstance(incumbent, dict)
         self.assertNotEqual(incumbent, default_config)
 
     def test_evaluate(self, metric=metric, engine=engine,
                       SAC=SAC, sgaci=sgaci):
-        perf = SAC.evaluate('SMAC', metric, engine[0], 'OneshotPlanner',
+        perf = SAC.evaluate(metric, engine[0], 'OneshotPlanner',
                             SAC.incumbent, sgaci, planner_timelimit=5)
         self.assertIsNone(perf)
 

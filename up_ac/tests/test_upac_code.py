@@ -32,8 +32,7 @@ metrics = ['quality', 'runtime']
 for metric in metrics:
 
     feedback = \
-        gaci.run_engine_config('SMAC',
-                               default_param,
+        gaci.run_engine_config(default_param,
                                metric,
                                engines[0],
                                'OneshotPlanner',
@@ -45,8 +44,7 @@ for metric in metrics:
         gaci.engine_param_spaces[engines[1]].get_default_configuration()
 
     feedback = \
-        gaci.run_engine_config('SMAC',
-                               default_param,
+        gaci.run_engine_config(default_param,
                                metric,
                                engines[1],
                                'OneshotPlanner',
@@ -58,8 +56,7 @@ for metric in metrics:
         gaci.engine_param_spaces[engines[2]].get_default_configuration()
 
     feedback = \
-        gaci.run_engine_config('SMAC',
-                               default_param,
+        gaci.run_engine_config(default_param,
                                metric,
                                engines[2],
                                'OneshotPlanner',
