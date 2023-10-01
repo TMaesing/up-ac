@@ -44,12 +44,12 @@ if __name__ == '__main__':
                          crash_cost=0, planner_timelimit=15, n_workers=3,
                          instance_features=None, popSize=5, metric=metric,
                          evlaLimit=1)
-        OAC_fb_func = OAC.get_feedback_function('OAT', ogaci, engine[0],
+        OAC_fb_func = OAC.get_feedback_function(ogaci, engine[0],
                                                 metric, 'OneshotPlanner')
         # run algorithm configuration
-        incumbent, _ = OAC.optimize('OAT', feedback_function=OAC_fb_func)
+        incumbent, _ = OAC.optimize(feedback_function=OAC_fb_func)
         # check configurations performance
-        perf = OAC.evaluate('OAT', metric, engine[0], 'OneshotPlanner',
+        perf = OAC.evaluate(metric, engine[0], 'OneshotPlanner',
                             OAC.incumbent, ogaci)
         # save best configuration found
         OAC.save_config('.', OAC.incumbent, ogaci, engine[0])

@@ -84,7 +84,7 @@ class OATConfigurator(Configurator):
                                                          f'{instance_p}')
                 # gray box in OAT only works with runtime scenarios
                 if gray_box:
-                    def planner_thread(gb_out, problem, res, ac_tool,
+                    def planner_thread(gb_out, problem, res,
                                        config, metric, engine, mode, 
                                        pddl_problem):
                         res.put(
@@ -96,7 +96,7 @@ class OATConfigurator(Configurator):
                                                    gb_out))
 
                     thread = Thread(target=planner_thread,
-                                    args=(gb_out, problem, res, ac_tool,
+                                    args=(gb_out, pddl_problem, res,
                                           config, metric, engine, mode, 
                                           pddl_problem),
                                     daemon=True)
@@ -200,7 +200,6 @@ class OATConfigurator(Configurator):
         """
         Set up algorithm configuration scenario.
 
-        parameter ac_tool: str, which configuration tol.
         parameter engine: str, which engine.
         parameter param_space: ConfigSpace object.
         parameter gaci: AC interface object.
@@ -261,11 +260,10 @@ class OATConfigurator(Configurator):
 
         self.scenario = scenario
 
-    def optimize(self, ac_tool, feedback_function=None, gray_box=False):
+    def optimize(self, feedback_function=None, gray_box=False):
         """
         Run the algorithm configuration.
 
-        parameter ac_tool: str, which AC tool.
         parameter feedback_function: function to run engine and get feedback.
         parameter gray_box: True, if gray box usage.
         """
@@ -314,7 +312,7 @@ class OATConfigurator(Configurator):
 
             self.incumbent = self.get_OAT_incumbent()
 
-            print(f'\nBest Configuration found by {ac_tool} is:\n',
+            print('\nBest Configuration found is:\n',
                   self.incumbent)
 
             return self.incumbent, None

@@ -118,7 +118,7 @@ class IraceConfigurator(Configurator):
                   f' {mode} is not supported.')
             return None
 
-    def set_scenario(self, ac_tool, engine, param_space, gaci,
+    def set_scenario(self, engine, param_space, gaci,
                      configuration_time=120,
                      n_trials=400, min_budget=1, max_budget=3, crash_cost=0,
                      planner_timelimit=30, n_workers=1, instances=[],
@@ -126,7 +126,6 @@ class IraceConfigurator(Configurator):
         """
         Set up algorithm configuration scenario.
 
-        parameter ac_tool: str, which configuration tol.
         parameter engine: str, which engine.
         parameter param_space: ConfigSpace object.
         parameter gaci: AC interface object.
@@ -202,11 +201,10 @@ class IraceConfigurator(Configurator):
 
         self.scenario = scenario
 
-    def optimize(self, ac_tool, feedback_function=None, gray_box=False):
+    def optimize(self, feedback_function=None, gray_box=False):
         """
         Run the algorithm configuration.
 
-        parameter ac_tool: str, which AC tool.
         parameter feedback_function: function to run engine and get feedback.
         parameter gray_box: True, if gray box usage.
         """
@@ -220,7 +218,7 @@ class IraceConfigurator(Configurator):
 
             self.incumbent = self.incumbent.to_dict(orient='records')[0]
 
-            print(f'\nBest Configuration found by {ac_tool} is:\n',
+            print('\nBest Configuration found is:\n',
                   self.incumbent)
 
             return self.incumbent, None

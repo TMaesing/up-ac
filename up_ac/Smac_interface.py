@@ -88,11 +88,13 @@ class SmacInterface(GenericACInterface):
                 if 'pruning' in config:
                     if config['pruning'] in pruning:
                         search_option += 'pruning=' + \
-                            str(config['pruning']) + '(use_sibling_shortcut=' \
+                            str(config['pruning'])  # + '(use_sibling_shortcut=' \
+                        '''
                             + config[
                                 'atom_centric_stubborn_sets_use_sibling'] + \
                             ',atom_selection_strategy=' + \
                             config['atom_selection_strategy'] + '(), '
+                        '''
                     else:
                         search_option += \
                             'pruning=' + str(config['pruning']) + '(),'

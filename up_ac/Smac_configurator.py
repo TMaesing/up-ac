@@ -64,6 +64,9 @@ class SmacConfigurator(Configurator):
                                                    metric, engine,
                                                    mode, pddl_problem)
 
+                        import warnings
+                        warnings.warn(f"\nFeedback: {feedback}\n")
+
                         return feedback
 
                     feedback = solve(config, metric, engine,
@@ -119,7 +122,7 @@ class SmacConfigurator(Configurator):
                   f' in {mode} is not supported.')
             return None
 
-    def set_scenario(self, ac_tool, engine, param_space, gaci,
+    def set_scenario(self, engine, param_space, gaci,
                      configuration_time=120, n_trials=400, min_budget=1,
                      max_budget=3, crash_cost=0, planner_timelimit=30,
                      n_workers=1, instances=[], instance_features=None,
@@ -127,7 +130,6 @@ class SmacConfigurator(Configurator):
         """
         Set up algorithm configuration scenario.
 
-        parameter ac_tool: str, which configuration tol.
         parameter engine: str, which engine.
         parameter param_space: ConfigSpace object.
         parameter gaci: AC interface object.
@@ -169,11 +171,10 @@ class SmacConfigurator(Configurator):
 
         self.scenario = scenario
 
-    def optimize(self, ac_tool, feedback_function=None, gray_box=False):
+    def optimize(self, feedback_function=None, gray_box=False):
         """
         Run the algorithm configuration.
 
-        parameter ac_tool: str, which AC tool.
         parameter feedback_function: function to run engine and get feedback.
         parameter gray_box: True, if gray box usage.
         """
@@ -188,7 +189,7 @@ class SmacConfigurator(Configurator):
 
             self.incumbent = self.incumbent.get_dictionary()
 
-            print(f'\nBest Configuration found by {ac_tool} is:\n',
+            print('\nBest Configuration found is:\n',
                   self.incumbent)
 
             return self.incumbent, None

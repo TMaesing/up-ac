@@ -45,7 +45,7 @@ if __name__ == '__main__':
         if IAC_fb_func is None:
             print('There is no feedback function!')
             continue
-        IAC.set_scenario('irace', engine[0],
+        IAC.set_scenario(engine[0],
                          igaci.engine_param_spaces[engine[0]], igaci,
                          configuration_time=300, n_trials=30,
                          crash_cost=0, min_budget=2,
@@ -59,9 +59,9 @@ if __name__ == '__main__':
         IAC_fb_func(experiment, IAC.scenario)
 
         # run algorithm configuration
-        incumbent, _ = IAC.optimize('irace', feedback_function=IAC_fb_func)
+        incumbent, _ = IAC.optimize(feedback_function=IAC_fb_func)
         # check configurations performance
-        perf = IAC.evaluate('irace', metric, engine[0], 'OneshotPlanner',
+        perf = IAC.evaluate(metric, engine[0], 'OneshotPlanner',
                             IAC.incumbent, igaci)
         # save best configuration found
         IAC.save_config('.', IAC.incumbent, igaci, engine[0])

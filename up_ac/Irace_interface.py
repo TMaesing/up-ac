@@ -28,7 +28,6 @@ class IraceInterface(GenericACInterface):
     def transform_conf_from_ac(self, engine, configuration):
         """Transform configuration to up engine format.
 
-        parameter ac_tool: str, name of AC tool in use.
         parameter engines: list of str, names of engines.
         parameter configuration: dict, parameter names with values.
 
@@ -104,11 +103,13 @@ class IraceInterface(GenericACInterface):
                 if 'pruning' in config:
                     if config['pruning'] in pruning:
                         search_option += 'pruning=' + \
-                            str(config['pruning']) + '(use_sibling_shortcut=' \
+                            str(config['pruning'])  # + '(use_sibling_shortcut=' \
+                        '''
                             + config[
                                 'atom_centric_stubborn_sets_use_sibling'] + \
                             ',atom_selection_strategy=' + \
                             config['atom_selection_strategy'] + '(), '
+                        '''
                     else:
                         search_option += \
                             'pruning=' + str(config['pruning']) + '(),'

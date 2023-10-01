@@ -94,7 +94,7 @@ class Configurator():
                   f' in {mode} is not supported.')
             return None
 
-    def set_scenario(self, ac_tool, engine, param_space, gaci,
+    def set_scenario(self, engine, param_space, gaci,
                      configuration_time=120, n_trials=400, min_budget=1,
                      max_budget=3, crash_cost=0, planner_timelimit=30,
                      n_workers=1, instances=[], instance_features=None,
@@ -102,7 +102,6 @@ class Configurator():
         """
         Set up algorithm configuration scenario.
 
-        parameter ac_tool: str, which configuration tol.
         parameter engine: str, which engine.
         parameter param_space: ConfigSpace object.
         parameter gaci: AC interface object.
@@ -124,11 +123,10 @@ class Configurator():
 
         self.scenario = scenario
 
-    def optimize(self, ac_tool, feedback_function=None, gray_box=False):
+    def optimize(self, feedback_function=None, gray_box=False):
         """
         Run the algorithm configuration.
 
-        parameter ac_tool: str, which AC tool.
         parameter feedback_function: function to run engine and get feedback.
         parameter gray_box: True, if gray box usage.
         """
@@ -136,12 +134,11 @@ class Configurator():
 
             return self.incumbent
 
-    def evaluate(self, ac_tool, metric, engine, mode, incumbent, gaci,
+    def evaluate(self, metric, engine, mode, incumbent, gaci,
                  planner_timelimit=10, crash_cost=0, instances=[]):
         """
         Evaluate performance of found configuration on training set.
 
-        parameter ac_tool: str, which AC tool.
         parameter metric: str, which optimization metric.
         parameter engine: str, which engine.
         parameter mode: str, which Planning mode.
@@ -171,7 +168,7 @@ class Configurator():
                 try:
                     if metric == 'runtime':
                         @concurrent.process(timeout=planner_timelimit)
-                        def solve(ac_tool, incumbent, metric, engine,
+                        def solve(incumbent, metric, engine,
                                   mode, pddl_problem):
                             f = \
                                 gaci.run_engine_config(incumbent,
@@ -180,7 +177,7 @@ class Configurator():
 
                             return f
 
-                        f = solve(ac_tool, incumbent, metric, engine,
+                        f = solve(incumbent, metric, engine,
                                   mode, pddl_problem)
                         
                         try:

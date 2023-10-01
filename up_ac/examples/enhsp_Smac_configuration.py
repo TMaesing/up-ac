@@ -58,9 +58,9 @@ if __name__ == '__main__':
         if SAC_fb_func is None:
             print('There is no feedback function!')
             continue
-        SAC.set_scenario('SMAC', engine[0],
+        SAC.set_scenario(engine[0],
                          sgaci.engine_param_spaces[engine[0]],
-                         sgaci, configuration_time=30, n_trials=50,
+                         sgaci, configuration_time=500, n_trials=500,
                          min_budget=2, max_budget=5, crash_cost=0,
                          planner_timelimit=5, n_workers=1,
                          instance_features=SAC.instance_features)
@@ -71,10 +71,10 @@ if __name__ == '__main__':
         SAC_fb_func(default_config, instances[0])
 
         # run algorithm configuration
-        incumbent, _ = SAC.optimize('SMAC', feedback_function=SAC_fb_func)
+        incumbent, _ = SAC.optimize(feedback_function=SAC_fb_func)
 
         # check configurations performance
-        perf = SAC.evaluate('SMAC', metric, engine[0], 'OneshotPlanner',
+        perf = SAC.evaluate(metric, engine[0], 'OneshotPlanner',
                             SAC.incumbent, sgaci, planner_timelimit=5)
         # save best configuration found
         SAC.save_config('.', SAC.incumbent, sgaci, engine[0])
