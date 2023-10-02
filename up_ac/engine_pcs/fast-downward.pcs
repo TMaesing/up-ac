@@ -9,7 +9,7 @@ open {alt, epsilon_greedy, pareto, single, tiebreaking, type_based} [alt]
 open_list_evals {add, blind, cea, cegar, cg, ff, goalcount, hm, hmax, lmcut, const, g, pref, cpdbs, ipdb, pdb, zopdbs} [blind]
 
 # reopen_closed {false, true} [false]
-randomize_successors {false, true} [false]
+# randomize_successors {false, true} [false]
 
 cost_type {normal, one, plus_one} [normal]
 
@@ -22,7 +22,7 @@ pruning {atom_centric_stubborn_sets, null, stubborn_sets_ec, stubborn_sets_simpl
 evaluator | fast_downward_search_config in {astar, eager_greedy, eager_wastar, ehc, lazy_greedy, lazy_wastar}
 # ehc_preferred_usage | fast_downward_search_config in {ehc}
 # reopen_closed | fast_downward_search_config in {eager, eager_wastar, lazy, lazy_greedy, lazy_wastar}
-randomize_successors | fast_downward_search_config in {lazy, lazy_greedy, lazy_wastar}
+# randomize_successors | fast_downward_search_config in {lazy, lazy_greedy, lazy_wastar}
 open | fast_downward_search_config in {eager, lazy}
 open_list_evals | fast_downward_search_config in {eager, lazy}
 pruning | fast_downward_search_config in {astar, eager, eager_greedy, eager_wastar}

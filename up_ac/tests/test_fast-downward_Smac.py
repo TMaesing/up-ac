@@ -3,6 +3,9 @@ import unified_planning as up
 import multiprocessing as mp
 import sys
 import os
+from unified_planning.io import PDDLReader
+
+reader = PDDLReader()
 
 # make sure test can be run from anywhere
 path = os.getcwd().rsplit('up-ac', 1)[0]
@@ -64,7 +67,8 @@ class TestSmacFastDownwardOnQuality(unittest.TestCase):
                      default_config=default_config):
 
         self.assertIsNotNone(SAC_fb_func, "Operational mode not supported")
-        self.assertIsNotNone(SAC_fb_func(default_config, instances[0]))
+        self.assertIsNotNone(SAC_fb_func(default_config, instances[0], 
+                                         0, reader))
 
     def test_optimize(self, SAC=SAC, SAC_fb_func=SAC_fb_func,
                       default_config=default_config):
@@ -128,7 +132,8 @@ class TestSmacFastDownwardOnRuntime(unittest.TestCase):
                      default_config=default_config):
 
         self.assertIsNotNone(SAC_fb_func, "Operational mode not supported")
-        self.assertIsNotNone(SAC_fb_func(default_config, instances[0]))
+        self.assertIsNotNone(SAC_fb_func(default_config, instances[0],
+                                         0, reader))
 
     def test_optimize(self, SAC=SAC, SAC_fb_func=SAC_fb_func,
                       default_config=default_config):

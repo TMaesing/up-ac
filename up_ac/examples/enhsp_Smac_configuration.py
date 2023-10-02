@@ -79,7 +79,7 @@ if __name__ == '__main__':
             sgaci.engine_param_spaces[engine[0]].get_default_configuration()
 
         # run algorithm configuration
-        incumbent, _ = SAC.optimize(feedback_function=test_func)
+        incumbent, _ = SAC.optimize(feedback_function=SAC_fb_func)
 
         # check configurations performance
         perf = SAC.evaluate(metric, engine[0], 'OneshotPlanner',
