@@ -42,6 +42,7 @@ class TestDefaultConfigs(unittest.TestCase):
         igaci.read_engine_pcs(engine, f'{path}/engine_pcs')
         up.shortcuts.get_environment().credits_stream = None
         default_config = igaci.engine_param_spaces[engine[0]].get_default_configuration()
+        print(default_config)
         self.assertEqual(dict(default_config), {'cost_type': 'normal', 'fast_downward_search_config': 'astar', 'evaluator': 'blind', 'pruning': 'null'},f"Default configuration of {engine[0]} does not match specified default configuration")
 
     def test_lpg(self):

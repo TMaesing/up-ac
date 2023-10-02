@@ -5,8 +5,8 @@ evaluator {add, blind, cea, cegar, cg, ff, goalcount, hm, hmax, lmcut, const, g,
 
 # ehc_preferred_usage {prune_by_preferred, rank_preferred_first} [prune_by_preferred]
 
-open {alt, epsilon_greedy, pareto, single, tiebreaking, type_based} [alt]
-open_list_evals {add, blind, cea, cegar, cg, ff, goalcount, hm, hmax, lmcut, const, g, pref, cpdbs, ipdb, pdb, zopdbs} [blind]
+#open {alt, epsilon_greedy, pareto, single, tiebreaking, type_based} [alt]
+#open_list_evals {add, blind, cea, cegar, cg, ff, goalcount, hm, hmax, lmcut, const, g, pref, cpdbs, ipdb, pdb, zopdbs} [blind]
 
 # reopen_closed {false, true} [false]
 # randomize_successors {false, true} [false]
