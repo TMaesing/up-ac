@@ -50,6 +50,14 @@ if __name__ == '__main__':
         SAC.get_instance_features(instance_features)
         SAC.set_training_instance_set(instances)
         SAC.set_test_instance_set(instances)
+
+        SAC.set_scenario(engine[0],
+                         sgaci.engine_param_spaces[engine[0]],
+                         sgaci, configuration_time=60, n_trials=30,
+                         min_budget=1, max_budget=3, crash_cost=0,
+                         planner_timelimit=15, n_workers=1,
+                         instance_features=SAC.instance_features)
+
         SAC_fb_func = SAC.get_feedback_function(sgaci, engine[0],
                                                 metric, 'OneshotPlanner')
         
@@ -57,12 +65,6 @@ if __name__ == '__main__':
         if SAC_fb_func is None:
             print('There is no feedback function!')
             continue
-        SAC.set_scenario(engine[0],
-                         sgaci.engine_param_spaces[engine[0]],
-                         sgaci, configuration_time=60, n_trials=30,
-                         min_budget=1, max_budget=3, crash_cost=0,
-                         planner_timelimit=15, n_workers=1,
-                         instance_features=SAC.instance_features)
 
         # Test feedback function
         default_config = \

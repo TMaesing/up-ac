@@ -3,6 +3,9 @@ from smac import Scenario
 from smac import AlgorithmConfigurationFacade
 from unified_planning.exceptions import UPProblemDefinitionError
 from pebble import concurrent
+import os
+import dill
+import sys
 from concurrent.futures import TimeoutError
 
 from up_ac.AC_interface import *
@@ -17,6 +20,10 @@ class SmacConfigurator(Configurator):
     def __init__(self):
         """Initialize Smac configurator."""
         Configurator.__init__(self)
+        self.crash_cost = 0
+        self.planner_timelimit = 0
+        self.engine = None
+        self.gaci = None 
 
     def get_feedback_function(self, gaci, engine, metric, mode,
                               gray_box=False):
@@ -31,22 +38,19 @@ class SmacConfigurator(Configurator):
 
         return planner_feedback: function, planner feedback function.
         """
-        print(metric)
-        print(mode)
-        print(self.capabilities)
         if engine in self.capabilities[metric][mode]:
             self.metric = metric
 
-            def planner_feedback(config, instance, seed=0):
+            def planner_feedback(config, instance, seed, reader):
                 start = timeit.default_timer()
-                print(instance)
                 instance_p = f'{instance}'
                 domain_path = instance_p.rsplit('/', 1)[0]
                 domain = f'{domain_path}/domain.pddl'
-                pddl_problem = self.reader.parse_problem(f'{domain}',
-                                                         f'{instance_p}')
+                pddl_problem = reader.parse_problem(f'{domain}',
+                                                    f'{instance_p}')
 
-                '''
+                # Since Smac handles time limits itself,
+                # we do not use concurrent, as with other AC tools
                 feedback = \
                     gaci.run_engine_config(config,
                                            metric,
@@ -59,13 +63,11 @@ class SmacConfigurator(Configurator):
                     @concurrent.process(timeout=self.planner_timelimit)
                     def solve(config, metric, engine,
                               mode, pddl_problem):
+                        print('Running further\n')
                         feedback = \
                             gaci.run_engine_config(config,
                                                    metric, engine,
                                                    mode, pddl_problem)
-
-                        import warnings
-                        warnings.warn(f"\nFeedback: {feedback}\n")
 
                         return feedback
 
@@ -87,7 +89,8 @@ class SmacConfigurator(Configurator):
                         feedback = self.planner_timelimit
                     elif metric == 'quality':
                         feedback = self.crash_cost
-
+                '''
+              
                 if feedback is not None:
                     # SMAC always minimizes
                     if metric == 'quality':
@@ -115,6 +118,16 @@ class SmacConfigurator(Configurator):
                         self.print_feedback(engine, instance, feedback)
 
                     return feedback
+
+            path = os.getcwd().rsplit('up-ac', 1)[0]
+            path += 'up-ac/up_ac/utils'
+
+            self.feedback_path = path
+
+            dill.dump(
+                planner_feedback, open(
+                    f'{path}/feedback.pkl', 'wb'),
+                recurse=True)
 
             return planner_feedback
         else:
@@ -153,7 +166,7 @@ class SmacConfigurator(Configurator):
         scenario = Scenario(
             param_space,
             # We want to optimize for <configuration_time> seconds
-            walltime_limit=configuration_time,  
+            walltime_limit=configuration_time,
             n_trials=n_trials,  # Maximum number or algorithm runs
             min_budget=min_budget,  # Use min <min_budget> instance
             max_budget=max_budget,  # Use max <max_budget> instances
@@ -179,10 +192,17 @@ class SmacConfigurator(Configurator):
         parameter gray_box: True, if gray box usage.
         """
         if feedback_function is not None:
+            # Import feedback function, since dask cannot pickle local objects            
+            path = os.getcwd().rsplit('up-ac', 1)[0]
+            path += 'up-ac/up_ac/utils'
+            sys.path.append(r"{}".format(path))
+            from load_smac_feedback import get_feedback
+
             print('\nStarting Parameter optimization\n')
+ 
             ac = AlgorithmConfigurationFacade(
                 self.scenario,
-                feedback_function,
+                get_feedback,
                 overwrite=True)
 
             self.incumbent = ac.optimize()

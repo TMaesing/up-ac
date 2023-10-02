@@ -4,6 +4,7 @@ from up_ac.configurators import Configurator
 
 import timeit
 import os
+import sys
 from threading import Thread
 from queue import Queue
 import subprocess
@@ -73,6 +74,10 @@ class OATConfigurator(Configurator):
                 gb_out = gb_out(q, res)
 
             def planner_feedback(config, instance, reader):
+            
+                path = os.getcwd().rsplit('up-ac', 1)[0]
+                path += 'up-ac/up_ac'
+                sys.path.append(r"{}".format(path))
 
                 self.reader = reader 
                 
@@ -179,6 +184,7 @@ class OATConfigurator(Configurator):
                     return feedback
 
             path_to_OAT = 'path_to_OAT'
+
             dill.dump(
                 planner_feedback, open(
                     f'{self.scenario[path_to_OAT]}feedback.pkl', 'wb'),

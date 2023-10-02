@@ -37,6 +37,14 @@ if __name__ == '__main__':
         IAC = IraceConfigurator()
         IAC.set_training_instance_set(instances)
         IAC.set_test_instance_set(instances)
+
+        IAC.set_scenario(engine[0],
+                         igaci.engine_param_spaces[engine[0]], igaci,
+                         configuration_time=60, n_trials=30,
+                         crash_cost=0, min_budget=2,
+                         planner_timelimit=5, n_workers=3,
+                         instance_features=None)
+
         IAC_fb_func = IAC.get_feedback_function(igaci, engine[0],
                                                 metric, 'OneshotPlanner')
 
@@ -44,12 +52,6 @@ if __name__ == '__main__':
         if IAC_fb_func is None:
             print('There is no feedback function!')
             continue
-        IAC.set_scenario(engine[0],
-                         igaci.engine_param_spaces[engine[0]], igaci,
-                         configuration_time=60, n_trials=30,
-                         crash_cost=0, min_budget=2,
-                         planner_timelimit=5, n_workers=3,
-                         instance_features=None)
 
         # Test feedback function
         default_config = \

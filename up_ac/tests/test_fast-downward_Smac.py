@@ -45,8 +45,6 @@ class TestSmacFastDownwardOnQuality(unittest.TestCase):
     SAC.get_instance_features(instance_features)
     SAC.set_training_instance_set(instances)
     SAC.set_test_instance_set(instances)
-    SAC_fb_func = SAC.get_feedback_function(sgaci, engine[0],
-                                            metric, 'OneshotPlanner')
 
     SAC.set_scenario(engine[0],
                      sgaci.engine_param_spaces[engine[0]],
@@ -54,6 +52,9 @@ class TestSmacFastDownwardOnQuality(unittest.TestCase):
                      min_budget=1, max_budget=3, crash_cost=0,
                      planner_timelimit=5, n_workers=3,
                      instance_features=SAC.instance_features)
+
+    SAC_fb_func = SAC.get_feedback_function(sgaci, engine[0],
+                                            metric, 'OneshotPlanner')
 
     default_config = \
         sgaci.engine_param_spaces[engine[0]].get_default_configuration()
@@ -108,8 +109,6 @@ class TestSmacFastDownwardOnRuntime(unittest.TestCase):
     SAC.get_instance_features(instance_features)
     SAC.set_training_instance_set(instances)
     SAC.set_test_instance_set(instances)
-    SAC_fb_func = SAC.get_feedback_function(sgaci, engine[0],
-                                            metric, 'OneshotPlanner')
 
     SAC.set_scenario(engine[0],
                      sgaci.engine_param_spaces[engine[0]],
@@ -117,6 +116,9 @@ class TestSmacFastDownwardOnRuntime(unittest.TestCase):
                      min_budget=1, max_budget=3, crash_cost=0,
                      planner_timelimit=5, n_workers=3,
                      instance_features=SAC.instance_features)
+
+    SAC_fb_func = SAC.get_feedback_function(sgaci, engine[0],
+                                            metric, 'OneshotPlanner')
 
     default_config = \
         sgaci.engine_param_spaces[engine[0]].get_default_configuration()
