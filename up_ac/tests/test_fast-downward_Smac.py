@@ -53,7 +53,7 @@ class TestSmacFastDownwardOnQuality(unittest.TestCase):
                      sgaci.engine_param_spaces[engine[0]],
                      sgaci, configuration_time=30, n_trials=30,
                      min_budget=1, max_budget=3, crash_cost=0,
-                     planner_timelimit=5, n_workers=3,
+                     planner_timelimit=5, n_workers=2,
                      instance_features=SAC.instance_features)
 
     SAC_fb_func = SAC.get_feedback_function(sgaci, engine[0],
@@ -118,7 +118,7 @@ class TestSmacFastDownwardOnRuntime(unittest.TestCase):
                      sgaci.engine_param_spaces[engine[0]],
                      sgaci, configuration_time=30, n_trials=30,
                      min_budget=1, max_budget=3, crash_cost=0,
-                     planner_timelimit=5, n_workers=3,
+                     planner_timelimit=5, n_workers=2,
                      instance_features=SAC.instance_features)
 
     SAC_fb_func = SAC.get_feedback_function(sgaci, engine[0],

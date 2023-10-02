@@ -25,6 +25,6 @@ evaluator | fast_downward_search_config in {astar, eager_greedy, eager_wastar, e
 # randomize_successors | fast_downward_search_config in {lazy, lazy_greedy, lazy_wastar}
 open | fast_downward_search_config in {eager, lazy}
 open_list_evals | fast_downward_search_config in {eager, lazy}
-pruning | fast_downward_search_config in {astar, eager, eager_greedy, eager_wastar}
+# pruning | fast_downward_search_config in {astar, eager, eager_greedy, eager_wastar}
 # atom_centric_stubborn_sets_use_sibling | pruning in {atom_centric_stubborn_sets}
 # atom_centric_stubborn_sets_use_sibling | pruning in {atom_centric_stubborn_sets}
