@@ -23,6 +23,7 @@ draft.py
 .Rhistory
 
 # output
+forbidden.txt
 tests/forbidden.txt
 tests/incumbent_enhsp.json
 tests/incumbent_lpg.json

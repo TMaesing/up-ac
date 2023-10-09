@@ -3,6 +3,7 @@ import wget
 import zipfile
 import os
 import shutil
+import stat
 
 
 def get_OAT():
@@ -41,6 +42,10 @@ def get_OAT():
             zip_ref.extractall(f'{path}/OAT')
         if os.path.isfile(f'{path}/OAT/OAT.zip'):
             os.remove(f'{path}/OAT/OAT.zip')
+
+    st = os.stat(f'{path}/OAT/Optano.Algorithm.Tuner.Application')
+    os.chmod(f'{path}/OAT/Optano.Algorithm.Tuner.Application',
+             st.st_mode | stat.S_IEXEC)
 
 
 def delete_OAT():
