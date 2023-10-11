@@ -26,6 +26,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
+    'python_docs_theme',
 ]
  
 napoleon_google_docstring = False
