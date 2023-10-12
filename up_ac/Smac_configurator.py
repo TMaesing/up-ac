@@ -135,6 +135,8 @@ class SmacConfigurator(Configurator):
                     return feedback
 
             path = os.getcwd().rsplit('up-ac', 1)[0]
+            if path[-1] != "/":
+                path += "/"
             path += 'up-ac/up_ac/utils'
 
             self.feedback_path = path
@@ -219,6 +221,8 @@ class SmacConfigurator(Configurator):
         if feedback_function is not None:
             # Import feedback function, since dask cannot pickle local objects            
             path = os.getcwd().rsplit('up-ac', 1)[0]
+            if path[-1] != "/":
+                path += "/"
             path += 'up-ac/up_ac/utils'
             sys.path.append(r"{}".format(path))
             from load_smac_feedback import get_feedback
