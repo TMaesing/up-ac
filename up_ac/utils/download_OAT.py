@@ -49,15 +49,22 @@ def get_OAT():
     os.chmod(f'{path}/OAT/Optano.Algorithm.Tuner.Application',
              st.st_mode | stat.S_IEXEC)
 
-    shutil.copy('call_engine_OAT.py', f'{path}/OAT/') 
+
+def copy_call_engine_OAT():
+    # Copy call_engine_OAT from utils to OAT directory
+    path = os.getcwd().rsplit('up_ac', 1)[0]
+    if path[-1] != "/":
+        path += "/"
+    path += 'up_ac'
+    
+    shutil.copy(f'{path}/utils/call_engine_OAT.py', f'{path}/OAT/') 
 
 
 def delete_OAT():
     # Set path to up-ac
-    path = os.getcwd().rsplit('up-ac', 1)[0]
+    path = os.getcwd().rsplit('up_ac', 1)[0]
     if path[-1] != "/":
         path += "/"
-    path += 'up-ac/up_ac'
-    print('PATH', path)
+    path += 'up_ac'
     if os.path.isdir(f'{path}/OAT/'):
         shutil.rmtree(f'{path}/OAT/')

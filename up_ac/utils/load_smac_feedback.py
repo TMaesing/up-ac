@@ -8,10 +8,10 @@ reader = PDDLReader()
 
 def get_feedback(config, instance, seed=0):
 
-    path = os.getcwd().rsplit('up-ac', 1)[0]
+    path = os.getcwd().rsplit('up_ac', 1)[0]
     if path[-1] != "/":
         path += "/"
-    path += 'up-ac/up_ac/utils'
+    path += 'up_ac/utils'
     sys.path.append(r"{}".format(path))
 
     fb = \
