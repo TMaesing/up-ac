@@ -87,10 +87,10 @@ class OATConfigurator(Configurator):
                 Returns:
                     float: Feedback value based on the planner's performance.
                 """ 
-                path = os.getcwd().rsplit('up-ac', 1)[0]
+                path = os.getcwd().rsplit('up_ac', 1)[0]
                 if path[-1] != "/":
                     path += "/"
-                path += 'up-ac/up_ac'
+                path += 'up_ac'
                 sys.path.append(r"{}".format(path))
 
                 self.reader = reader 
@@ -243,10 +243,10 @@ class OATConfigurator(Configurator):
 
         param_file = gaci.get_ps_oat(param_space)
 
-        path = os.getcwd().rsplit('up-ac', 2)[0]
+        path = os.getcwd().rsplit('up_ac', 2)[0]
         if path[-1] != "/":
             path += "/"
-        path += 'up-ac/up_ac'
+        path += 'up_ac'
 
         path_to_xml = f'{path}/OAT/{engine}parameterTree.xml'
 
