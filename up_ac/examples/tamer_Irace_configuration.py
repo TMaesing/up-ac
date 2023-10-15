@@ -5,6 +5,8 @@ import os
 
 # make sure test can be run from anywhere
 path = os.getcwd().rsplit('up-ac', 1)[0]
+if path[-1] != "/":
+    path += "/"
 path += 'up-ac/up_ac'
 if not os.path.isfile(sys.path[0] + '/configurators.py') and \
         'up-ac' in sys.path[0]:

@@ -17,6 +17,8 @@ for arg in sys.argv[2::2]:
     
 # Make sure modules are accesible
 path = os.getcwd().rsplit('up_ac', 2)[0]
+if path[-1] != "/":
+    path += "/"
 path += 'up_ac'
 sys.path.append(r"{}".format(path))
 
