@@ -44,10 +44,10 @@ class TestIraceEnhspOnQuality(unittest.TestCase):
     IAC_fb_func = IAC.get_feedback_function(igaci, engine[0],
                                             metric, 'OneshotPlanner')
 
-    def test_fb_func(self, IAC_fb_func=IAC_fb_func):
+    def test_A_fb_func(self, IAC_fb_func=IAC_fb_func):
         self.assertIsNotNone(IAC_fb_func, "Operational mode not supported")
 
-    def test_enhsp(self, IAC=IAC,
+    def test_A_enhsp(self, IAC=IAC,
                    IAC_fb_func=IAC_fb_func, igaci=igaci,
                    metric=metric, engine=engine, instances=instances):
 
@@ -56,7 +56,7 @@ class TestIraceEnhspOnQuality(unittest.TestCase):
         experiment = {'id.instance': 1, 'configuration': default_config}
         IAC_fb_func(experiment, IAC.scenario)
 
-    def test_evaluate(self, IAC=IAC, instances=instances, igaci=igaci,
+    def test_A_evaluate(self, IAC=IAC, instances=instances, igaci=igaci,
                       engine=engine, metric=metric):
 
         if (IAC.incumbent is None) or (len(instances) == 0):
@@ -96,10 +96,10 @@ class TestIraceEnhspOnRuntime(unittest.TestCase):
     IAC_fb_func = IAC.get_feedback_function(igaci, engine[0],
                                             metric, 'OneshotPlanner')
 
-    def test_fb_func(self, IAC_fb_func=IAC_fb_func):
+    def test_A_fb_func(self, IAC_fb_func=IAC_fb_func):
         self.assertIsNotNone(IAC_fb_func, "Operational mode not supported")
 
-    def test_enhsp(self, IAC=IAC,
+    def test_A_enhsp(self, IAC=IAC,
                    IAC_fb_func=IAC_fb_func, igaci=igaci,
                    metric=metric, engine=engine, instances=instances):
 
@@ -108,7 +108,7 @@ class TestIraceEnhspOnRuntime(unittest.TestCase):
         experiment = {'id.instance': 1, 'configuration': default_config}
         IAC_fb_func(experiment, IAC.scenario)
 
-    def test_evaluate(self, IAC=IAC, instances=instances, igaci=igaci,
+    def test_A_evaluate(self, IAC=IAC, instances=instances, igaci=igaci,
                       engine=engine, metric=metric):
 
         if (IAC.incumbent is None) or (len(instances) == 0):

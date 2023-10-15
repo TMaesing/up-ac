@@ -62,7 +62,7 @@ class TestSmacFastDownwardOnQuality(unittest.TestCase):
     default_config = \
         sgaci.engine_param_spaces[engine[0]].get_default_configuration()
 
-    def test_fb_func(self, SAC_fb_func=SAC_fb_func, sgaci=sgaci,
+    def test_A_fb_func(self, SAC_fb_func=SAC_fb_func, sgaci=sgaci,
                      engine=engine, instances=instances,
                      default_config=default_config):
 
@@ -70,17 +70,17 @@ class TestSmacFastDownwardOnQuality(unittest.TestCase):
         self.assertIsNotNone(SAC_fb_func(default_config, instances[0], 
                                          0, reader))
 
-    def test_optimize(self, SAC=SAC, SAC_fb_func=SAC_fb_func,
+    def test_B_optimize(self, SAC=SAC, SAC_fb_func=SAC_fb_func,
                       default_config=default_config):
         incumbent, _ = SAC.optimize(feedback_function=SAC_fb_func)
         self.assertIsInstance(incumbent, dict)
         self.assertNotEqual(incumbent, default_config)
 
-    def test_evaluate(self, metric=metric, engine=engine,
+    def test_C_evaluate(self, metric=metric, engine=engine,
                       SAC=SAC, sgaci=sgaci):
         perf = SAC.evaluate(metric, engine[0], 'OneshotPlanner',
                             SAC.incumbent, sgaci, planner_timelimit=5)
-        self.assertIsNone(perf)
+        self.assertIsInstance(perf, float)
 
 
 class TestSmacFastDownwardOnRuntime(unittest.TestCase):
@@ -127,7 +127,7 @@ class TestSmacFastDownwardOnRuntime(unittest.TestCase):
     default_config = \
         sgaci.engine_param_spaces[engine[0]].get_default_configuration()
 
-    def test_fb_func(self, SAC_fb_func=SAC_fb_func, sgaci=sgaci,
+    def test_A_fb_func(self, SAC_fb_func=SAC_fb_func, sgaci=sgaci,
                      engine=engine, instances=instances,
                      default_config=default_config):
 
@@ -135,17 +135,17 @@ class TestSmacFastDownwardOnRuntime(unittest.TestCase):
         self.assertIsNotNone(SAC_fb_func(default_config, instances[0],
                                          0, reader))
 
-    def test_optimize(self, SAC=SAC, SAC_fb_func=SAC_fb_func,
+    def test_B_optimize(self, SAC=SAC, SAC_fb_func=SAC_fb_func,
                       default_config=default_config):
         incumbent, _ = SAC.optimize(feedback_function=SAC_fb_func)
         self.assertIsInstance(incumbent, dict)
         self.assertNotEqual(incumbent, default_config)
 
-    def test_evaluate(self, metric=metric, engine=engine,
+    def test_C_evaluate(self, metric=metric, engine=engine,
                       SAC=SAC, sgaci=sgaci):
         perf = SAC.evaluate(metric, engine[0], 'OneshotPlanner',
                             SAC.incumbent, sgaci, planner_timelimit=5)
-        self.assertIsNone(perf)
+        self.assertIsInstance(perf, float)
 
 
 up.shortcuts.get_environment().credits_stream = None
